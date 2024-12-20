@@ -16,6 +16,7 @@ Contributors: [Add your name here if you contribute to this script]
 """
 
 import os
+import sys
 import zipfile
 import shutil
 import fitz  # PyMuPDF package for PDF processing
@@ -23,28 +24,63 @@ from PIL import Image # pillow package
 import io
 import json
 import base64
+'''import config parameters'''
+from config import *
 
-##### PARAMETERS
+# Check if pdf_path is set
+try: pdf_path
+except NameError :
+    sys.stderr.write("ERROR: You need to indicate a PDF file in the config.py\n")
 
-pdf_path = "Ourednik_Robopoiesis_EN_excerpt.pdf"  # Replace with your PDF file path
-epub_file_name = "Robopoieses_2e_2024" # Replace with the name of your epub file
-title = "Robopoiesis : Artificial Intelligences of Nature"
-author = "André Ourednik"
-language = "en"
-publisher = "La Baconnière"
-date = "2024-12-19"
-description = "Artificial intelligence, as we understand it today focuses on “machine learning”, whereby an isolated program evolves to make increasingly “correct” decisions with a predefined objective in mind. Its myth feeds on the ideology of the self-made-man, seen as a model of intelligence by the major investors in the AI field. While starting to display a creative potential, this kind of intelligence lures our imagination to the gravity centres of established systems of thought, whom it contributes to immobilise. To escape from its pull, we need broader perspectives. This essay examines AI in the perspective of a long tradition. Its history begins with the emergence of spoken language, and is materialised in writing and in the urban structures of antique cities. Ourednik reveals AI as a set of symbolic and functional systems that mediate our relationship to the uncontrollable, the unnameable, the elusive, in other words: to nature. Linking the law tablets of the city of Ur, the Vedic meganumbers, the automata of the 18th century, cybernetics and generative algorithms, this is the story of the growing autonomy of thinking devices. What role will humans play in their creations in the future? Does artificial intelligence that escapes human control become “nature” again? With what consequences? Can AI help us in our relationships with other living beings, with our own subjectivity and with our natural environment?"
-rights = "All rights reserved."
-font_folder = "Fonts"
-cover_image = "Ourednik_Robopoiesis_cover_image.png"
-urn = "12345678-1234-1234-1234-123456789abc"
+# Set default values for other variables if they are None
+try: epub_file_name 
+except NameError :
+    epub_file_name = os.path.splitext(pdf_path)[0]
+    sys.stderr.write("Warning: epub_file_name is not set. Defaulting to pdf_path.\n")
+if 'title' in locals() or 'author' in globals():
+    title = "Default Title"
+    sys.stderr.write("Warning: title is not set. Defaulting to 'Default Title'.\n")
+try: author
+except NameError: 
+    author = "Unknown Author"
+    sys.stderr.write("Warning: author is not set. Defaulting to 'Unknown Author'.\n")
+try: language 
+except NameError :
+    language = "en"
+    sys.stderr.write("Warning: language is not set. Defaulting to 'en'.\n")
+try: publisher 
+except NameError :
+    publisher = "Unknown Publisher"
+    sys.stderr.write("Warning: publisher is not set. Defaulting to 'Unknown Publisher'.\n")
+try: date 
+except NameError :
+    date = "2024-01-01"
+    sys.stderr.write("Warning: date is not set. Defaulting to '2024-01-01'.\n")
+try: description 
+except NameError :
+    description = "No description available."
+    sys.stderr.write("Warning: description is not set. Defaulting to 'No description available'.\n")
+try: rights 
+except NameError :
+    rights = "All rights reserved."
+    sys.stderr.write("Warning: rights is not set. Defaulting to 'All rights reserved'.\n")
+try: font_folder 
+except NameError :
+    font_folder = "./fonts"
+    sys.stderr.write("Warning: font_folder is not set. Defaulting to './fonts'.\n")
+try: cover_image 
+except NameError :
+    cover_image = "default_cover.jpg"
+    sys.stderr.write("Warning: cover_image is not set. Defaulting to 'default_cover.jpg'.\n")
+try: urn 
+except NameError :
+    urn = "urn:default"
+    sys.stderr.write("Warning: urn is not set. Defaulting to 'urn:default'.\n")
 
-###### END of basic parameters. Only edit below this line to modify the dynamic bahavior of the code
-
-output_folder = epub_file_name
-output_folder_pageimages = epub_file_name + "_pageimages"
-epub_file_path = epub_file_name + "_html.epub"
-epub_file_path_pageimages = epub_file_name + "_pageimages.epub"
+output_folder_html = os.path.join("output",epub_file_name + "_html")
+output_folder_pageimages = os.path.join("output",epub_file_name + "_pageimages")
+epub_file_path = os.path.join("output",epub_file_name + "_html.epub")
+epub_file_path_pageimages = os.path.join("output",epub_file_name + "_pageimages.epub")
 
 def write_mimetype_file(output_folder):
     mimetype_path = os.path.join(output_folder, "mimetype")
@@ -247,7 +283,10 @@ def create_epub_structure_from_pdf(pdf_path, output_folder, variant, generate_js
     doc = fitz.open(pdf_path)
     if generate_json : 
         print("Extracting also the PDF structure as raw JSON data for verification")
-        extract_pdf_to_json(doc,epub_file_name + "_rawstructure.json")
+        extract_pdf_to_json(
+            doc,
+            os.path.join("output", epub_file_name + "_rawstructure.json")
+        )
     image_counter = 0
     for page_num in range(doc.page_count):
         print("processing page " + str(page_num))
@@ -487,8 +526,8 @@ def zip_folder_to_epub(folder_path, epub_path):
 
 # html version
 print("Creating HTML version with selectable text")
-create_epub_structure_from_pdf(pdf_path, output_folder,"html",True)
-zip_folder_to_epub(output_folder, epub_file_path)
+create_epub_structure_from_pdf(pdf_path, output_folder_html,"html",True)
+zip_folder_to_epub(output_folder_html, epub_file_path)
 
 # pageimages version
 print("Creating version consiting of PAGE IMAGES")

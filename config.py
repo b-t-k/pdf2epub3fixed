@@ -1,0 +1,12 @@
+pdf_path = "Ourednik_Robopoiesis_EN_excerpt.pdf"  # Replace with your PDF file path
+epub_file_name = "Robopoieses_2e_2024" # Replace with the name of your epub file
+title = "Robopoiesis : Artificial Intelligences of Nature"
+author = "André Ourednik"
+language = "en"
+publisher = "La Baconnière"
+date = "2024-12-19"
+description = "Artificial intelligence, as we understand it today focuses on “machine learning”, whereby an isolated program evolves to make increasingly “correct” decisions with a predefined objective in mind. Its myth feeds on the ideology of the self-made-man, seen as a model of intelligence by the major investors in the AI field. While starting to display a creative potential, this kind of intelligence lures our imagination to the gravity centres of established systems of thought, whom it contributes to immobilise. To escape from its pull, we need broader perspectives. This essay examines AI in the perspective of a long tradition. Its history begins with the emergence of spoken language, and is materialised in writing and in the urban structures of antique cities. Ourednik reveals AI as a set of symbolic and functional systems that mediate our relationship to the uncontrollable, the unnameable, the elusive, in other words: to nature. Linking the law tablets of the city of Ur, the Vedic meganumbers, the automata of the 18th century, cybernetics and generative algorithms, this is the story of the growing autonomy of thinking devices. What role will humans play in their creations in the future? Does artificial intelligence that escapes human control become “nature” again? With what consequences? Can AI help us in our relationships with other living beings, with our own subjectivity and with our natural environment?"
+rights = "All rights reserved."
+font_folder = "Fonts"
+cover_image = "Ourednik_Robopoiesis_cover_image.png"
+urn = "12345678-1234-1234-1234-123456789abc"
