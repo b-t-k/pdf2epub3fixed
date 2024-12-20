@@ -24,7 +24,9 @@ from PIL import Image # pillow package
 import io
 import json
 import base64
-'''import config parameters'''
+from datetime import datetime
+
+# import config parameters
 from config import *
 
 # Check if pdf_path is set
@@ -37,7 +39,8 @@ try: epub_file_name
 except NameError :
     epub_file_name = os.path.splitext(pdf_path)[0]
     sys.stderr.write("Warning: epub_file_name is not set. Defaulting to pdf_path.\n")
-if 'title' in locals() or 'author' in globals():
+try: title 
+except NameError :
     title = "Default Title"
     sys.stderr.write("Warning: title is not set. Defaulting to 'Default Title'.\n")
 try: author
@@ -70,8 +73,8 @@ except NameError :
     sys.stderr.write("Warning: font_folder is not set. Defaulting to './fonts'.\n")
 try: cover_image 
 except NameError :
-    cover_image = "default_cover.jpg"
-    sys.stderr.write("Warning: cover_image is not set. Defaulting to 'default_cover.jpg'.\n")
+    cover_image = ""
+    sys.stderr.write("Warning: cover_image is not set.\n")
 try: urn 
 except NameError :
     urn = "urn:default"
@@ -121,7 +124,7 @@ def write_content_opf(oebps_folder,content_opf_items,page_html_files,variant):
     font_items = ""
     if variant == "html" :
         for font in font_list:
-            font_items += f'<item id="font" href="{font["font_path"]}" media-type="application/x-font-ttf"/>\n'
+            font_items += f'<item id="font" href="{font["font_path"]}" media-type="application/x-font-ttf"/>\n'       
     content_opf_content = f"""<?xml version="1.0" encoding="UTF-8"?>
 <package version="3.0" xmlns="http://www.idpf.org/2007/opf" unique-identifier="bookid" prefix="rendition: http://www.idpf.org/vocab/rendition/# ibooks: http://vocabulary.itunes.apple.com/rdf/ibooks/vocabulary-extensions-1.0/">
     <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
@@ -135,15 +138,16 @@ def write_content_opf(oebps_folder,content_opf_items,page_html_files,variant):
         <dc:date>{date}</dc:date>
         <dc:description>{description}</dc:description>
         <dc:rights>{rights}</dc:rights>
-        <dc:identifier id="book-id">urn:uuid:{urn}</dc:identifier>
-        <meta name="cover" href="{cover_image}" content="cover-image" />
+        <dc:identifier id="bookid">urn:uuid:{urn}</dc:identifier>
+        <meta name="cover" content="book-cover" />
+        <meta property="dcterms:modified">{datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ')}</meta>
         <!--fixed-layout options-->
 		<meta property="rendition:layout">pre-paginated</meta>
 		<meta property="rendition:orientation">portrait</meta>
 		<meta property="rendition:spread">none</meta>
     </metadata>
     <manifest>
-        <item id="toc" href="toc.ncx" media-type="application/x-dtbncx+xml"/>
+        <item id="toc" href="toc.ncx" media-type="application/x-dtbncx+xml" properties="nav"/>
         <item id="css" href="style.css" media-type="text/css"/>
         {font_items}
         {"".join(content_opf_items)}
@@ -313,6 +317,15 @@ def create_epub_structure_from_pdf(pdf_path, output_folder, variant, generate_js
                 f'<item id="{img['id']}" href="{img['href']}" media-type="image/png"/>\n'
             )
         page_html_files.append(f'<itemref idref="page_{page_num + 1}"/>\n')
+       
+    # Add a cover image if available  
+    if os.path.exists(cover_image) :
+        cover_image_destination = os.path.join(images_folder, cover_image)
+        shutil.copy2(cover_image, cover_image_destination)
+        content_opf_items.append(
+                f'<item id="book-cover" href="image/{cover_image}" media-type="image/png"/>\n'
+            )
+    else : print("Your book has no cover image.")
 
     if variant == "html":
         print("Verify if you have all the fonts actually used in the PDF. Add them if necessary, using these exact names:")
@@ -462,6 +475,7 @@ def generate_fixed_layout_html_selectable(page, page_num, images_folder, image_c
     html_content = process_red_boxes_links(page, html_content)
     html_content += "</body></html>"
     return html_content, image_counter, image_manifest
+
 
 def process_images(text_instances, images_folder, image_counter, html_content) :
     """Process images on the page and prepare the listing of images in the manifest. Only used in compelx HTML layout"""
