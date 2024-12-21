@@ -50,7 +50,7 @@ pip3 install pymupdf
 conda install pillow
 conda install shututil
 conda install zipfile
-conda install yaml
+conda install pyyaml
 ```
 
 ## Use
