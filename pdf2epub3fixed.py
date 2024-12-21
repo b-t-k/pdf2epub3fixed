@@ -505,10 +505,10 @@ def generate_fixed_layout_html_selectable(page, page_num, images_folder, image_c
                             '''
                             html_content += f"""<div style="position:absolute; left:{x0}px; top:{y0}px; width:{width}px; height:{height}px; font-family:'{font_name}'; font-size:{font_size}px; white-space:nowrap;">{word_text}</div>\n"""
     html_content, image_manifest, image_counter = process_images(text_instances, images_folder, image_counter, html_content)
+    html_content += process_vector_drawings(page)
     html_content = process_red_boxes_links(page, html_content)
     html_content += "</body></html>"
     return html_content, image_counter, image_manifest
-
 
 def process_images(text_instances, images_folder, image_counter, html_content) :
     """Process images on the page and prepare the listing of images in the manifest. Only used in compelx HTML layout"""
@@ -534,23 +534,110 @@ def process_images(text_instances, images_folder, image_counter, html_content) :
                     height = y1 - y0
                     html_content += f'<figure id="_image_{image_counter}"><img src="image/{image_filename}" style="left:{x0}px; top:{y0}px; width:{width}px; height:{height}px;" />\n</figure>'
                     image_counter += 1
-                elif isinstance(block['image'], str) and block['image'].strip().startswith("<svg"):
-                    # Handle SVG images
-                    svg_data = block['image']
-                    image_filename = f"image_{image_counter}.svg"
-                    image_path = os.path.join(images_folder, image_filename)
-                    # Save the SVG data to a file
-                    with open(image_path, 'w', encoding='utf-8') as svg_file:
-                        svg_file.write(svg_data)               
-                    # Add the SVG to the manifest
-                    image_manifest.append({
-                        'id': f"image_{image_counter}",
-                        'href': f"image/{image_filename}"
-                    })
-                    image_counter += 1
                 else:
                     continue  # Skip unsupported image formats
     return html_content, image_manifest, image_counter 
+
+def process_vector_drawings(page) :
+    vectors = page.get_drawings()
+    svg_content = ""
+    if len(vectors) > 0 :
+        svg_elements = []
+        for item in vectors:
+            if item['type'] == 's':  # Assuming 's' stands for stroke or line
+                for action, *points in item['items']:
+                    if action == 'l':  # Assuming 'l' stands for line
+                        start_point, end_point = points
+                        x1, y1 = start_point.x, start_point.y
+                        x2, y2 = end_point.x, end_point.y
+                        stroke_color = f"rgb({int(item['color'][0] * 255)}, {int(item['color'][1] * 255)}, {int(item['color'][2] * 255)})"
+                        stroke_width = item['width']
+                        stroke_opacity = item['stroke_opacity']
+
+                        line_element = f'''
+                        <line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}"
+                            stroke="{stroke_color}"
+                            stroke-width="{stroke_width}"
+                            stroke-opacity="{stroke_opacity}" />
+                        '''
+                        svg_elements.append(line_element)
+
+            elif item['type'] == 'r':  # Assuming 'r' stands for rectangle
+                x, y, width, height = item['rect'].x, item['rect'].y, item['rect'].width, item['rect'].height
+                stroke_color = f"rgb({int(item['color'][0] * 255)}, {int(item['color'][1] * 255)}, {int(item['color'][2] * 255)})"
+                stroke_width = item['width']
+                stroke_opacity = item['stroke_opacity']
+                fill_color = f"rgb({int(item['fill'][0] * 255)}, {int(item['fill'][1] * 255)}, {int(item['fill'][2] * 255)})" if item['fill'] else 'none'
+                fill_opacity = item['fill_opacity'] if item['fill_opacity'] is not None else 1.0
+
+                rect_element = f'''
+                <rect x="{x}" y="{y}" width="{width}" height="{height}"
+                    stroke="{stroke_color}"
+                    stroke-width="{stroke_width}"
+                    stroke-opacity="{stroke_opacity}"
+                    fill="{fill_color}"
+                    fill-opacity="{fill_opacity}" />
+                '''
+                svg_elements.append(rect_element)
+
+            elif item['type'] == 'e':  # Assuming 'e' stands for ellipse
+                cx, cy = item['center'].x, item['center'].y
+                rx, ry = item['radius'].x, item['radius'].y
+                stroke_color = f"rgb({int(item['color'][0] * 255)}, {int(item['color'][1] * 255)}, {int(item['color'][2] * 255)})"
+                stroke_width = item['width']
+                stroke_opacity = item['stroke_opacity']
+                fill_color = f"rgb({int(item['fill'][0] * 255)}, {int(item['fill'][1] * 255)}, {int(item['fill'][2] * 255)})" if item['fill'] else 'none'
+                fill_opacity = item['fill_opacity'] if item['fill_opacity'] is not None else 1.0
+
+                ellipse_element = f'''
+                <ellipse cx="{cx}" cy="{cy}" rx="{rx}" ry="{ry}"
+                        stroke="{stroke_color}"
+                        stroke-width="{stroke_width}"
+                        stroke-opacity="{stroke_opacity}"
+                        fill="{fill_color}"
+                        fill-opacity="{fill_opacity}" />
+                '''
+                svg_elements.append(ellipse_element)
+
+            elif item['type'] == 'p':  # Assuming 'p' stands for polygon or path
+                path_data = []
+                for action, *points in item['items']:
+                    if action == 'M':  # Move to
+                        x, y = points[0].x, points[0].y
+                        path_data.append(f"M {x} {y}")
+                    elif action == 'L':  # Line to
+                        x, y = points[0].x, points[0].y
+                        path_data.append(f"L {x} {y}")
+                    elif action == 'C':  # Cubic Bezier curve
+                        x1, y1 = points[0].x, points[0].y
+                        x2, y2 = points[1].x, points[1].y
+                        x, y = points[2].x, points[2].y
+                        path_data.append(f"C {x1} {y1}, {x2} {y2}, {x} {y}")
+                    elif action == 'Z':  # Close path
+                        path_data.append("Z")
+
+                stroke_color = f"rgb({int(item['color'][0] * 255)}, {int(item['color'][1] * 255)}, {int(item['color'][2] * 255)})"
+                stroke_width = item['width']
+                stroke_opacity = item['stroke_opacity']
+                fill_color = f"rgb({int(item['fill'][0] * 255)}, {int(item['fill'][1] * 255)}, {int(item['fill'][2] * 255)})" if item['fill'] else 'none'
+                fill_opacity = item['fill_opacity'] if item['fill_opacity'] is not None else 1.0
+
+                path_element = f'''
+                <path d="{' '.join(path_data)}"
+                    stroke="{stroke_color}"
+                    stroke-width="{stroke_width}"
+                    stroke-opacity="{stroke_opacity}"
+                    fill="{fill_color}"
+                    fill-opacity="{fill_opacity}" />
+                '''
+                svg_elements.append(path_element)
+
+        svg_content += f'''<svg xmlns="http://www.w3.org/2000/svg" version="1.1">
+            {''.join(svg_elements)}
+        </svg>
+        '''
+        print("... contains SVG")
+    return svg_content
 
 def zip_folder_to_epub(folder_path, epub_path):
     """Zips the folder structure and creates an EPUB file."""

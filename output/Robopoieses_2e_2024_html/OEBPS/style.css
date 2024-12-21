@@ -1,0 +1,93 @@
+@font-face {
+        font-family: "NotoSerif-ExtraCondensedThin";
+        font-style: normal;
+        font-weight: 300;
+        src: url("font['font_path']");
+    }@font-face {
+        font-family: "NotoSerif-LightItalic";
+        font-style: normal;
+        font-weight: 300;
+        src: url("font['font_path']");
+    }@font-face {
+        font-family: "NotoSerif-SemiBoldItalic";
+        font-style: normal;
+        font-weight: 300;
+        src: url("font['font_path']");
+    }@font-face {
+        font-family: "NotoSerifDevanagari";
+        font-style: normal;
+        font-weight: 300;
+        src: url("font['font_path']");
+    }@font-face {
+        font-family: "NotoSerifHebrew-Light";
+        font-style: normal;
+        font-weight: 300;
+        src: url("font['font_path']");
+    }@font-face {
+        font-family: "CMSY8";
+        font-style: normal;
+        font-weight: 300;
+        src: url("font['font_path']");
+    }@font-face {
+        font-family: "NotoSans-Bold";
+        font-style: normal;
+        font-weight: 300;
+        src: url("font['font_path']");
+    }@font-face {
+        font-family: "CMMI6";
+        font-style: normal;
+        font-weight: 300;
+        src: url("font['font_path']");
+    }@font-face {
+        font-family: "NotoSerif-SemiBold";
+        font-style: normal;
+        font-weight: 300;
+        src: url("font['font_path']");
+    }@font-face {
+        font-family: "CMMI8";
+        font-style: normal;
+        font-weight: 300;
+        src: url("font['font_path']");
+    }@font-face {
+        font-family: "NotoNaskhArabicUI-Regular";
+        font-style: normal;
+        font-weight: 300;
+        src: url("font['font_path']");
+    }@font-face {
+        font-family: "NotoSerif-Light";
+        font-style: normal;
+        font-weight: 300;
+        src: url("font['font_path']");
+    }@font-face {
+        font-family: "NotoSerif-ExtraCondensedExtraLight";
+        font-style: normal;
+        font-weight: 300;
+        src: url("font['font_path']");
+    }@font-face {
+        font-family: "NotoSans";
+        font-style: normal;
+        font-weight: 300;
+        src: url("font['font_path']");
+    }@font-face {
+        font-family: "CMMI09";
+        font-style: normal;
+        font-weight: 300;
+        src: url("font['font_path']");
+    }@font-face {
+        font-family: "CMR8";
+        font-style: normal;
+        font-weight: 300;
+        src: url("font['font_path']");
+    }@font-face {
+        font-family: "CMR9";
+        font-style: normal;
+        font-weight: 300;
+        src: url("font['font_path']");
+    }body, div, dl, dt, dd, h1, h2, h3, h4, h5, h6, p, pre, code, blockquote, figure {
+	margin:0;
+	padding:0;
+	border-width:0;
+	text-rendering:optimizeSpeed;
+}
+div { position: absolute; }
+img { position: absolute; }
