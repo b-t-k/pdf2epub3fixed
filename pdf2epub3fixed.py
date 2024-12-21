@@ -147,7 +147,8 @@ def write_content_opf(oebps_folder,content_opf_items,page_html_files,variant):
 		<meta property="rendition:spread">none</meta>
     </metadata>
     <manifest>
-        <item id="toc" href="toc.ncx" media-type="application/x-dtbncx+xml" properties="nav"/>
+        <item id="toc" href="toc.ncx" media-type="application/x-dtbncx+xml"/>
+        <item id="nav" href="toc.xhtml" media-type="application/xhtml+xml" properties="nav"/>
         <item id="css" href="style.css" media-type="text/css"/>
         {font_items}
         {"".join(content_opf_items)}
@@ -160,7 +161,36 @@ def write_content_opf(oebps_folder,content_opf_items,page_html_files,variant):
     with open(content_opf_path, "w", encoding="utf-8") as f:
         f.write(content_opf_content)
 
+
+def write_toc_xhtml(oebps_folder, doc):
+    """This generates an EPUB 3 type navigation."""
+    toc_xhtml_path = os.path.join(oebps_folder, "toc.xhtml")
+    toc = doc.get_toc() # [[1, 'Préface', 7], [1, 'Les deux mélodies fondamentales', 17], ...]
+    toc_xhtml_points = []
+    for chapnum, t in enumerate(toc) :
+        toc_xhtml_points.append(f"""
+        <li><a href="page_{t[2]}.xhtml">{t[1]}</a></li>
+        """)
+    toc_xhtml_content = f"""<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
+    <head>
+        <title>{title}</title>
+    </head>
+    <body>
+        <nav epub:type="toc" id="toc">
+            <h1>Table of Contents</h1>
+            <ol>
+                {"".join(toc_xhtml_points)}
+            </ol>
+        </nav>
+    </body>
+</html>
+"""
+    with open(toc_xhtml_path, "w", encoding="utf-8") as f:
+        f.write(toc_xhtml_content)
+
+
 def write_toc_ncx(oebps_folder, doc):
+    """This generates an EPUB 2 type navigation. Depracated."""
     toc_ncx_path = os.path.join(oebps_folder, "toc.ncx")
     toc = doc.get_toc() # [[1, 'Préface', 7], [1, 'Les deux mélodies fondamentales', 17], ...]
     toc_ncx_points = []
@@ -332,6 +362,7 @@ def create_epub_structure_from_pdf(pdf_path, output_folder, variant, generate_js
         for fnt in fonts_in_pdf:
             print(fnt)
     write_content_opf(oebps_folder,content_opf_items,page_html_files,variant)
+    write_toc_xhtml(oebps_folder, doc)
     write_toc_ncx(oebps_folder, doc)
     write_css_and_font_files(oebps_folder,font_folder_output,variant)
     print(f"EPUB structure created at: {output_folder}")
@@ -340,21 +371,21 @@ def process_red_boxes_links(frompage, html_content):
     """Extracts red boxes with links and adds them as cross-references in HTML."""
     for link in frompage.get_links():
         rect = link.get('from')
-        point = link.get('to')
+        # point = link.get('to')
         topage = link.get('page')
-        kind = link.get('kind') 
-        xref = link.get('xref')  
+        # kind = link.get('kind') 
+        # xref = link.get('xref')  
         uri = link.get('uri')
-        nameddest = link.get('nameddest')
-        id = link.get('id')
-        zoom = link.get('zoom')
-        to = [point.x, point.y] if point else None,
+        # nameddest = link.get('nameddest')
+        # id = link.get('id')
+        # zoom = link.get('zoom')
+        # to = [point.x, point.y] if point else None,
         width = rect.x1 - rect.x0
         height = rect.y1 - rect.y0
         if topage is not None:
-            html_content += f'<a href="page_{topage + 1}.xhtml" style="position:absolute; left:{rect.x0}px; top:{rect.y0}px; width:{width}px; height:{height}px; border:0.5px solid red; display:block;"></a>\n'
-        else :
-            html_content += f'<a href="{uri}" style="position:absolute; left:{rect.x0}px; top:{rect.y0}px; width:{width}px; height:{height}px; border:0.5px solid red; display:block;"></a>\n' 
+            html_content += f'<a href="page_{topage + 1}.xhtml" style="position:absolute; left:{rect.x0}px; top:{rect.y0}px; width:{width}px; height:{height}px; border:0.3px solid blue; display:block; "></a>\n'
+        elif uri is not None :
+            html_content += f'<a href="{uri}" style="position:absolute; left:{rect.x0}px; top:{rect.y0}px; width:{width}px; height:{height}px; border:0.3px solid blue; display:block; "></a>\n' 
     return html_content
 
 def is_all_caps(text):
@@ -466,10 +497,12 @@ def generate_fixed_layout_html_selectable(page, page_num, images_folder, image_c
                             width = x1 - x0
                             height = y1 - y0
                             word_text = word_text.replace('&', '&amp;').replace(u'\u00A0', '&nbsp;')
+                            '''
                             if len(word_text) > 1 and page_num > 353 :
                                 if is_all_caps(word_text):
                                     word_text = f"<span style='font-variant:small-caps'>{word_text[0] + word_text[1:].lower()}</span>"
                                     print(word_text) 
+                            '''
                             html_content += f"""<div style="position:absolute; left:{x0}px; top:{y0}px; width:{width}px; height:{height}px; font-family:'{font_name}'; font-size:{font_size}px; white-space:nowrap;">{word_text}</div>\n"""
     html_content, image_manifest, image_counter = process_images(text_instances, images_folder, image_counter, html_content)
     html_content = process_red_boxes_links(page, html_content)
