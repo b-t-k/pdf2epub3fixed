@@ -71,7 +71,19 @@ conda activate pdf2epub3fixed
 cd path\to\pdf2epub3fixed
 ```
 
+### Execute with a configuration file
+
+Prepare a configuration file (See an example in [config.yml](config.yml)) and run this:
+
+```bash
+python pdf2epub3fixed.py --yaml_config=config.yml
+```
+
+For all undefined arguments, _PDF2epub3fixed_ will fall back on default values.
+
 ### Execute with inline arguments
+
+You can also directly provide the arguments in the command line:
 
 ```bash
 python pdf2epub3fixed.py --pdf_path=path/to/your/pdffile.pdf
@@ -93,14 +105,6 @@ The following additional arguments should be used:
 - --urn = "12345678-1234-1234-1234-123456789abc"
 
 For all undefined arguments, _PDF2epub3fixed_ will fall back on default values.
-
-### Execute with a configuration file
-
-Alternatively, you can set the arguments in a YAML file and simply provide a path to the file
-
-```bash
-python pdf2epub3fixed.py --yaml_config=config.yml
-```
 
 ## Example files
 
