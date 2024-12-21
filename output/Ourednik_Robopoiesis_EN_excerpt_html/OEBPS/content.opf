@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<package version="3.0" xmlns="http://www.idpf.org/2007/opf" unique-identifier="bookid" prefix="rendition: http://www.idpf.org/vocab/rendition/# ibooks: http://vocabulary.itunes.apple.com/rdf/ibooks/vocabulary-extensions-1.0/">
+    <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
+        <meta name="generator" content="pdf2epub3fixed" />
+        <meta property="ibooks:specified-fonts">true</meta>
+        <dc:title>Default Title</dc:title>
+        <dc:creator id="creator">Unknown Author</dc:creator>
+        <meta refines="#creator" property="role" scheme="marc:relators">aut</meta>
+        <dc:language>en</dc:language>
+        <dc:publisher>Unknown Publisher</dc:publisher>
+        <dc:date>2025-01-01</dc:date>
+        <dc:description>No Description</dc:description>
+        <dc:rights>All Rights Reserved</dc:rights>
+        <dc:identifier id="bookid">urn:uuid:None</dc:identifier>
+        <meta name="cover" content="book-cover" />
+        <meta property="dcterms:modified">2024-12-21T12:55:28Z</meta>
+        <!--fixed-layout options-->
+		<meta property="rendition:layout">pre-paginated</meta>
+		<meta property="rendition:orientation">portrait</meta>
+		<meta property="rendition:spread">none</meta>
+    </metadata>
+    <manifest>
+        <item id="toc" href="toc.ncx" media-type="application/x-dtbncx+xml"/>
+        <item id="nav" href="toc.xhtml" media-type="application/xhtml+xml" properties="nav"/>
+        <item id="css" href="style.css" media-type="text/css"/>
+        <item id="font" href="Fonts/NotoSerif-ExtraCondensedThin.ttf" media-type="application/x-font-ttf"/>
+<item id="font" href="Fonts/NotoSerif-LightItalic.ttf" media-type="application/x-font-ttf"/>
+<item id="font" href="Fonts/NotoSerif-SemiBoldItalic.ttf" media-type="application/x-font-ttf"/>
+<item id="font" href="Fonts/NotoSerifDevanagari.ttf" media-type="application/x-font-ttf"/>
+<item id="font" href="Fonts/NotoSerifHebrew-Light.ttf" media-type="application/x-font-ttf"/>
+<item id="font" href="Fonts/CMSY8.ttf" media-type="application/x-font-ttf"/>
+<item id="font" href="Fonts/NotoSans-Bold.ttf" media-type="application/x-font-ttf"/>
+<item id="font" href="Fonts/CMMI6.ttf" media-type="application/x-font-ttf"/>
+<item id="font" href="Fonts/NotoSerif-SemiBold.ttf" media-type="application/x-font-ttf"/>
+<item id="font" href="Fonts/CMMI8.ttf" media-type="application/x-font-ttf"/>
+<item id="font" href="Fonts/NotoNaskhArabicUI-Regular.ttf" media-type="application/x-font-ttf"/>
+<item id="font" href="Fonts/NotoSerif-Light.ttf" media-type="application/x-font-ttf"/>
+<item id="font" href="Fonts/NotoSerif-ExtraCondensedExtraLight.ttf" media-type="application/x-font-ttf"/>
+<item id="font" href="Fonts/NotoSans.ttf" media-type="application/x-font-ttf"/>
+<item id="font" href="Fonts/CMMI09.ttf" media-type="application/x-font-ttf"/>
+<item id="font" href="Fonts/CMR8.ttf" media-type="application/x-font-ttf"/>
+<item id="font" href="Fonts/CMR9.ttf" media-type="application/x-font-ttf"/>
+
+        <item id="page_1" href="page_1.xhtml" media-type="application/xhtml+xml"/>
+<item id="image_0" href="image/image_0.png" media-type="image/png"/>
+<item id="page_2" href="page_2.xhtml" media-type="application/xhtml+xml"/>
+<item id="page_3" href="page_3.xhtml" media-type="application/xhtml+xml"/>
+<item id="page_4" href="page_4.xhtml" media-type="application/xhtml+xml"/>
+<item id="page_5" href="page_5.xhtml" media-type="application/xhtml+xml"/>
+<item id="page_6" href="page_6.xhtml" media-type="application/xhtml+xml"/>
+<item id="page_7" href="page_7.xhtml" media-type="application/xhtml+xml"/>
+<item id="page_8" href="page_8.xhtml" media-type="application/xhtml+xml"/>
+<item id="page_9" href="page_9.xhtml" media-type="application/xhtml+xml"/>
+<item id="page_10" href="page_10.xhtml" media-type="application/xhtml+xml"/>
+<item id="page_11" href="page_11.xhtml" media-type="application/xhtml+xml"/>
+<item id="page_12" href="page_12.xhtml" media-type="application/xhtml+xml"/>
+<item id="page_13" href="page_13.xhtml" media-type="application/xhtml+xml"/>
+<item id="page_14" href="page_14.xhtml" media-type="application/xhtml+xml"/>
+<item id="page_15" href="page_15.xhtml" media-type="application/xhtml+xml"/>
+<item id="page_16" href="page_16.xhtml" media-type="application/xhtml+xml"/>
+<item id="page_17" href="page_17.xhtml" media-type="application/xhtml+xml"/>
+<item id="page_18" href="page_18.xhtml" media-type="application/xhtml+xml"/>
+<item id="page_19" href="page_19.xhtml" media-type="application/xhtml+xml"/>
+<item id="page_20" href="page_20.xhtml" media-type="application/xhtml+xml"/>
+<item id="page_21" href="page_21.xhtml" media-type="application/xhtml+xml"/>
+<item id="page_22" href="page_22.xhtml" media-type="application/xhtml+xml"/>
+<item id="page_23" href="page_23.xhtml" media-type="application/xhtml+xml"/>
+<item id="page_24" href="page_24.xhtml" media-type="application/xhtml+xml"/>
+<item id="image_1" href="image/image_1.png" media-type="image/png"/>
+<item id="image_2" href="image/image_2.png" media-type="image/png"/>
+<item id="page_25" href="page_25.xhtml" media-type="application/xhtml+xml"/>
+<item id="image_3" href="image/image_3.png" media-type="image/png"/>
+<item id="page_26" href="page_26.xhtml" media-type="application/xhtml+xml"/>
+<item id="page_27" href="page_27.xhtml" media-type="application/xhtml+xml"/>
+<item id="page_28" href="page_28.xhtml" media-type="application/xhtml+xml"/>
+<item id="page_29" href="page_29.xhtml" media-type="application/xhtml+xml"/>
+<item id="page_30" href="page_30.xhtml" media-type="application/xhtml+xml"/>
+<item id="page_31" href="page_31.xhtml" media-type="application/xhtml+xml"/>
+<item id="page_32" href="page_32.xhtml" media-type="application/xhtml+xml"/>
+<item id="page_33" href="page_33.xhtml" media-type="application/xhtml+xml"/>
+<item id="page_34" href="page_34.xhtml" media-type="application/xhtml+xml"/>
+<item id="page_35" href="page_35.xhtml" media-type="application/xhtml+xml"/>
+<item id="page_36" href="page_36.xhtml" media-type="application/xhtml+xml"/>
+<item id="page_37" href="page_37.xhtml" media-type="application/xhtml+xml"/>
+<item id="page_38" href="page_38.xhtml" media-type="application/xhtml+xml"/>
+<item id="page_39" href="page_39.xhtml" media-type="application/xhtml+xml"/>
+<item id="page_40" href="page_40.xhtml" media-type="application/xhtml+xml"/>
+<item id="page_41" href="page_41.xhtml" media-type="application/xhtml+xml"/>
+<item id="page_42" href="page_42.xhtml" media-type="application/xhtml+xml"/>
+<item id="page_43" href="page_43.xhtml" media-type="application/xhtml+xml"/>
+<item id="page_44" href="page_44.xhtml" media-type="application/xhtml+xml"/>
+<item id="page_45" href="page_45.xhtml" media-type="application/xhtml+xml"/>
+<item id="page_46" href="page_46.xhtml" media-type="application/xhtml+xml"/>
+<item id="page_47" href="page_47.xhtml" media-type="application/xhtml+xml"/>
+<item id="page_48" href="page_48.xhtml" media-type="application/xhtml+xml"/>
+<item id="page_49" href="page_49.xhtml" media-type="application/xhtml+xml"/>
+<item id="page_50" href="page_50.xhtml" media-type="application/xhtml+xml"/>
+<item id="page_51" href="page_51.xhtml" media-type="application/xhtml+xml"/>
+<item id="page_52" href="page_52.xhtml" media-type="application/xhtml+xml"/>
+<item id="page_53" href="page_53.xhtml" media-type="application/xhtml+xml"/>
+<item id="page_54" href="page_54.xhtml" media-type="application/xhtml+xml"/>
+<item id="page_55" href="page_55.xhtml" media-type="application/xhtml+xml"/>
+<item id="page_56" href="page_56.xhtml" media-type="application/xhtml+xml"/>
+<item id="page_57" href="page_57.xhtml" media-type="application/xhtml+xml"/>
+<item id="page_58" href="page_58.xhtml" media-type="application/xhtml+xml"/>
+<item id="page_59" href="page_59.xhtml" media-type="application/xhtml+xml"/>
+<item id="page_60" href="page_60.xhtml" media-type="application/xhtml+xml"/>
+<item id="page_61" href="page_61.xhtml" media-type="application/xhtml+xml"/>
+<item id="page_62" href="page_62.xhtml" media-type="application/xhtml+xml"/>
+<item id="page_63" href="page_63.xhtml" media-type="application/xhtml+xml"/>
+<item id="page_64" href="page_64.xhtml" media-type="application/xhtml+xml"/>
+<item id="page_65" href="page_65.xhtml" media-type="application/xhtml+xml"/>
+<item id="book-cover" href="image/Ourednik_Robopoiesis_cover_image.png" media-type="image/png"/>
+
+    </manifest>
+    <spine toc="toc">
+        <itemref idref="page_1"/>
+<itemref idref="page_2"/>
+<itemref idref="page_3"/>
+<itemref idref="page_4"/>
+<itemref idref="page_5"/>
+<itemref idref="page_6"/>
+<itemref idref="page_7"/>
+<itemref idref="page_8"/>
+<itemref idref="page_9"/>
+<itemref idref="page_10"/>
+<itemref idref="page_11"/>
+<itemref idref="page_12"/>
+<itemref idref="page_13"/>
+<itemref idref="page_14"/>
+<itemref idref="page_15"/>
+<itemref idref="page_16"/>
+<itemref idref="page_17"/>
+<itemref idref="page_18"/>
+<itemref idref="page_19"/>
+<itemref idref="page_20"/>
+<itemref idref="page_21"/>
+<itemref idref="page_22"/>
+<itemref idref="page_23"/>
+<itemref idref="page_24"/>
+<itemref idref="page_25"/>
+<itemref idref="page_26"/>
+<itemref idref="page_27"/>
+<itemref idref="page_28"/>
+<itemref idref="page_29"/>
+<itemref idref="page_30"/>
+<itemref idref="page_31"/>
+<itemref idref="page_32"/>
+<itemref idref="page_33"/>
+<itemref idref="page_34"/>
+<itemref idref="page_35"/>
+<itemref idref="page_36"/>
+<itemref idref="page_37"/>
+<itemref idref="page_38"/>
+<itemref idref="page_39"/>
+<itemref idref="page_40"/>
+<itemref idref="page_41"/>
+<itemref idref="page_42"/>
+<itemref idref="page_43"/>
+<itemref idref="page_44"/>
+<itemref idref="page_45"/>
+<itemref idref="page_46"/>
+<itemref idref="page_47"/>
+<itemref idref="page_48"/>
+<itemref idref="page_49"/>
+<itemref idref="page_50"/>
+<itemref idref="page_51"/>
+<itemref idref="page_52"/>
+<itemref idref="page_53"/>
+<itemref idref="page_54"/>
+<itemref idref="page_55"/>
+<itemref idref="page_56"/>
+<itemref idref="page_57"/>
+<itemref idref="page_58"/>
+<itemref idref="page_59"/>
+<itemref idref="page_60"/>
+<itemref idref="page_61"/>
+<itemref idref="page_62"/>
+<itemref idref="page_63"/>
+<itemref idref="page_64"/>
+<itemref idref="page_65"/>
+
+    </spine>
+</package>
