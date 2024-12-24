@@ -30,6 +30,8 @@ import json
 import base64
 from datetime import datetime
 
+
+
 parser = argparse.ArgumentParser(description="Convert PDF to fixed-layout EPUB, conserving the table of contents, inner cross-references and hyperlinks.")
 parser.add_argument("--pdf_path", type=str, help="Path to the sourcePDF file")
 parser.add_argument("--output_folder", type=str, help="Folder into which the resulting EPUB will be written")
@@ -80,8 +82,18 @@ defaults = {
 no_pdf_message = "A PDF filename is required and must be provided either as first argument (pdf2epub3fixed.py --pdf_path your_file.pdf) or in the YAML configuration file."
 
 # Fallback to YAML values if yaml_cofig is defined, and if values not provided in command-line arguments, and to defaults if not privided in the yaml file
-if args.yaml_config:
-    with open(args.yaml_config, 'r') as file:
+if args.yaml_config and os.path.isfile(args.yaml_config):
+    print(f"Reading configuration file {args.yaml_config}. Parameters unspecified in the command line will be read from {args.yaml_config} whenever available")
+    yaml_file = args.yaml_config
+elif args.yaml_config and not os.path.isfile(args.yaml_config) :
+    raise FileNotFoundError(f"The configuration file {args.yaml_config} does not exist.")
+elif os.path.isfile("config.yml") :
+    print("No configuration file specified in the parameters, but config.yml found. Parameters unspecified in the command line will be read from config.yml whenever available.")
+    yaml_file = "config.yml"
+else : yaml_file = None
+
+if yaml_file is not None :
+    with open(yaml_file, 'r') as file:
         yaml_config = yaml.safe_load(file)
     pdf_path = args.pdf_path if args.title else yaml_config.get('pdf_path')
     if not pdf_path:
@@ -350,14 +362,16 @@ def create_epub_structure_from_pdf(pdf_path, output_folder, variant, generate_js
     # Loop through PDF pages and generate HTML
     doc = fitz.open(pdf_path)
     if generate_json : 
-        print("Extracting also the PDF structure as raw JSON data for verification")
+        print("Extracting the PDF structure as raw JSON data for verification")
         extract_pdf_to_json(
             doc,
             os.path.join(output_folder, epub_file_name + "_rawstructure.json")
         )
     image_counter = 0
+    print("processing pages: ")
     for page_num in range(doc.page_count):
-        print("processing page " + str(page_num))
+        print(str(page_num), end="\r")
+        print(str(page_num), end=" ")
         page = doc.load_page(page_num)
         html_file_name = f"page_{page_num + 1}.xhtml"
         html_file_path = os.path.join(oebps_folder, html_file_name)
@@ -381,9 +395,11 @@ def create_epub_structure_from_pdf(pdf_path, output_folder, variant, generate_js
                 f'<item id="{img['id']}" href="{img['href']}" media-type="image/png"/>\n'
             )
         page_html_files.append(f'<itemref idref="page_{page_num + 1}"/>\n')
-       
+    print("pages processed.")
+
     # Add a cover image if available  
     if os.path.exists(cover_image) :
+        print("Processing cover image")
         cover_image_destination = os.path.join(images_folder, cover_image)
         shutil.copy2(cover_image, cover_image_destination)
         content_opf_items.append(
