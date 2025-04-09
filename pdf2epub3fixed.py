@@ -75,7 +75,7 @@ defaults = {
     'date': "2025-01-01",
     'description': "No Description",
     'rights': "All Rights Reserved",
-    'font_folder': "Fonts",
+    'font_folder': "font",
     'cover_image': "",
     'urn': "urn:1234567890"
 }
@@ -139,7 +139,7 @@ def write_mimetype_file(output_folder):
 def generate_font_list(folder_path):
     font_array = []
     for file_name in os.listdir(folder_path):
-        if file_name.endswith(".ttf"):  # Check if the file is a TrueType font
+        if file_name.endswith((".ttf", ".otf")):  # Check if the file is a TrueType font
             font_name = os.path.splitext(file_name)[0]  # Remove the '.ttf' extension
             font_path = os.path.join(folder_path, file_name)
             font_array.append({
@@ -170,7 +170,12 @@ def write_content_opf(oebps_folder,content_opf_items,page_html_files,variant):
     font_items = ""
     if variant == "html" :
         for font in font_list:
-            font_items += f'<item id="font" href="{font["font_path"]}" media-type="application/x-font-ttf"/>\n'       
+            media_type = "application/x-font-ttf"  # Default for .ttf
+            if font["font_path"].lower().endswith(".otf"):
+                media_type = "application/vnd.ms-opentype"  # Correct media type for .otf
+            font_items += f'<item id="{font["font_name"]}" href="{font["font_path"]}" media-type="{media_type}"/>\n'
+
+            # font_items += f'<item id="font" href="{font["font_path"]}" media-type="application/x-font-ttf"/>\n'      
     content_opf_content = f"""<?xml version="1.0" encoding="UTF-8"?>
 <package version="3.0" xmlns="http://www.idpf.org/2007/opf" unique-identifier="bookid" prefix="rendition: http://www.idpf.org/vocab/rendition/# ibooks: http://vocabulary.itunes.apple.com/rdf/ibooks/vocabulary-extensions-1.0/">
     <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
@@ -274,11 +279,13 @@ def write_css_and_font_files(oebps_folder,font_folder_output,variant):
     css_content = ""
     if variant == "html" :
         for font in font_list :
+            original_extension = os.path.splitext(font['font_path'])[1]
+            output_filename_css = f"{font['font_name']}{original_extension}" # Path in CSS
             css_content += f"""@font-face {{
         font-family: \"{font['font_name']}\";
         font-style: normal;
-        font-weight: 300;
-        src: url(\"font['font_path']\");
+        font-weight: normal;
+        src: url(\"font/{output_filename_css}\");
     }}"""
     css_content += """body, div, dl, dt, dd, h1, h2, h3, h4, h5, h6, p, pre, code, blockquote, figure {
 	margin:0;
@@ -293,8 +300,10 @@ img { position: absolute; }
         f.write(css_content)
     if variant == "html" :
         for font in font_list : 
-            font_path = os.path.join(font_folder_output, f"{font['font_name']}.ttf")
-            shutil.copyfile(font_folder + f"/{font['font_name']}.ttf", font_path)
+            original_extension = os.path.splitext(font['font_path'])[1]  # Get the original extension (.ttf or .otf)
+            output_filename = f"{font['font_name']}{original_extension}"
+            font_path_output = os.path.join(font_folder_output, output_filename)
+            shutil.copyfile(font['font_path'], font_path_output)
 
 def extract_crosslinks(page):
     """Extract crosslinks using page.get_links() and add them to JSON"""
@@ -392,7 +401,7 @@ def create_epub_structure_from_pdf(pdf_path, output_folder, variant, generate_js
         )
         for img in image_manifest:
             content_opf_items.append(
-                f'<item id="{img['id']}" href="{img['href']}" media-type="image/png"/>\n'
+                f'<item id="page_{img["id"]}" href="{img["href"]}" media-type="application/xhtml+xml"/>\n'
             )
         page_html_files.append(f'<itemref idref="page_{page_num + 1}"/>\n')
     print("pages processed.")
