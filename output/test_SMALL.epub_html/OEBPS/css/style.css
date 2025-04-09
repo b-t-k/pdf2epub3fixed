@@ -1,0 +1,48 @@
+@font-face {
+        font-family: "Cabrito-NorDem";
+        font-style: normal;
+        font-weight: normal;
+        src: url("../font/Cabrito-NorDem.ttf");
+    }@font-face {
+        font-family: "Cabrito-NorDemIt";
+        font-style: normal;
+        font-weight: normal;
+        src: url("../font/Cabrito-NorDemIt.ttf");
+    }@font-face {
+        font-family: "Caveat-Bold";
+        font-style: normal;
+        font-weight: normal;
+        src: url("../font/Caveat-Bold.otf");
+    }@font-face {
+        font-family: "CaveatBrush-Regular";
+        font-style: normal;
+        font-weight: normal;
+        src: url("../font/CaveatBrush-Regular.ttf");
+    }@font-face {
+        font-family: "GardenSlab";
+        font-style: normal;
+        font-weight: normal;
+        src: url("../font/GardenSlab.otf");
+    }@font-face {
+        font-family: "MinionPro-Bold";
+        font-style: normal;
+        font-weight: normal;
+        src: url("../font/MinionPro-Bold.otf");
+    }@font-face {
+        font-family: "MinionPro-Regular";
+        font-style: normal;
+        font-weight: normal;
+        src: url("../font/MinionPro-Regular.otf");
+    }@font-face {
+        font-family: "SoundBubble-Regular";
+        font-style: normal;
+        font-weight: normal;
+        src: url("../font/SoundBubble-Regular.otf");
+    }body, div, dl, dt, dd, h1, h2, h3, h4, h5, h6, p, pre, code, blockquote, figure {
+	margin:0;
+	padding:0;
+	border-width:0;
+	text-rendering:optimizeSpeed;
+}
+div { position: absolute; }
+img { position: absolute; }

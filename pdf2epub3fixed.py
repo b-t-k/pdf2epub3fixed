@@ -44,6 +44,7 @@ parser.add_argument("--date", type=str, help="Publication date of the book")
 parser.add_argument("--description", type=str, help="Book description")
 parser.add_argument("--rights", type=str, help="Rights information of your PDF book")
 parser.add_argument("--font_folder", type=str, help="Folder containing fonts")
+parser.add_argument("--css_folder", type=str, help="Folder containing the css file")
 parser.add_argument("--cover_image", type=str, help="Path to the cover image")
 parser.add_argument("--urn", type=str, help="URN of the PDF file")
 parser.add_argument("--yaml_config", type=str, help="Path to the YAML configuration file")
@@ -62,6 +63,7 @@ date = args.date
 description = args.description
 rights = args.rights
 font_folder = args.font_folder
+css_folder = args.css_folder
 cover_image = args.cover_image
 urn = args.urn
 
@@ -76,6 +78,7 @@ defaults = {
     'description': "No Description",
     'rights': "All Rights Reserved",
     'font_folder': "font",
+    'css_folder': "css",
     'cover_image': "",
     'urn': "urn:1234567890"
 }
@@ -108,6 +111,7 @@ if yaml_file is not None :
     description = args.description if args.description else yaml_config.get('description', defaults['description'])
     rights = args.rights if args.rights else yaml_config.get('rights', defaults['rights'])
     font_folder = args.font_folder if args.font_folder else yaml_config.get('font_folder', defaults['font_folder'])
+    css_folder = args.css_folder if args.css_folder else yaml_config.get('css_folder', defaults['css_folder'])
     cover_image = args.cover_image if args.cover_image else yaml_config.get('cover_image', defaults['cover_image'])
     urn = args.urn if args.urn else yaml_config.get('urn', defaults['urn'])
 else :
@@ -124,6 +128,7 @@ else :
     description = description if description else defaults['description']
     rights = rights if rights else defaults['rights']
     font_folder = font_folder if font_folder else defaults['font_folder']
+    css_folder = css_folder if css_folder else defaults['css_folder']
     cover_image = cover_image if cover_image else defaults['cover_image']
 
 output_folder_html = os.path.join(output_folder,epub_file_name + "_html")
@@ -173,9 +178,7 @@ def write_content_opf(oebps_folder,content_opf_items,page_html_files,variant):
             media_type = "application/x-font-ttf"  # Default for .ttf
             if font["font_path"].lower().endswith(".otf"):
                 media_type = "application/vnd.ms-opentype"  # Correct media type for .otf
-            font_items += f'<item id="{font["font_name"]}" href="{font["font_path"]}" media-type="{media_type}"/>\n'
-
-            # font_items += f'<item id="font" href="{font["font_path"]}" media-type="application/x-font-ttf"/>\n'      
+            font_items += f'<item id="{font["font_name"]}" href="{font["font_path"]}" media-type="{media_type}"/>\n'    
     content_opf_content = f"""<?xml version="1.0" encoding="UTF-8"?>
 <package version="3.0" xmlns="http://www.idpf.org/2007/opf" unique-identifier="bookid" prefix="rendition: http://www.idpf.org/vocab/rendition/# ibooks: http://vocabulary.itunes.apple.com/rdf/ibooks/vocabulary-extensions-1.0/">
     <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
@@ -200,7 +203,7 @@ def write_content_opf(oebps_folder,content_opf_items,page_html_files,variant):
     <manifest>
         <item id="toc" href="toc.ncx" media-type="application/x-dtbncx+xml"/>
         <item id="nav" href="toc.xhtml" media-type="application/xhtml+xml" properties="nav"/>
-        <item id="css" href="style.css" media-type="text/css"/>
+        <item id="css" href="{css_folder}/style.css" media-type="text/css"/>
         {font_items}
         {"".join(content_opf_items)}
     </manifest>
@@ -275,7 +278,9 @@ def write_toc_ncx(oebps_folder, doc):
 
 def write_css_and_font_files(oebps_folder,font_folder_output,variant):
         # Step 8: Add a CSS file with @font-face
-    css_path = os.path.join(oebps_folder, "style.css")
+    css_folder = os.path.join(oebps_folder, "css")
+    os.makedirs(css_folder, exist_ok=True)  # Create the 'css' folder if it doesn't exist
+    css_path = os.path.join(css_folder, "style.css")
     css_content = ""
     if variant == "html" :
         for font in font_list :
@@ -285,7 +290,7 @@ def write_css_and_font_files(oebps_folder,font_folder_output,variant):
         font-family: \"{font['font_name']}\";
         font-style: normal;
         font-weight: normal;
-        src: url(\"font/{output_filename_css}\");
+        src: url(\"../font/{output_filename_css}\");
     }}"""
     css_content += """body, div, dl, dt, dd, h1, h2, h3, h4, h5, h6, p, pre, code, blockquote, figure {
 	margin:0;
@@ -467,7 +472,7 @@ def generate_fixed_layout_html(page, page_num, images_folder, image_counter, dpi
     <meta charset="utf-8" />
     <meta name="viewport" content="width={page.rect.width},height={page.rect.height}" />
     <title>Page {page_num + 1}</title>
-    <link rel="stylesheet" type="text/css" href="style.css" />
+    <link rel="stylesheet" type="text/css" href="css/style.css" />
 </head>
 <body style="width:{page.rect.width}px;height:{page.rect.height}px; position:relative;">
 """
@@ -503,7 +508,7 @@ def generate_fixed_layout_html_selectable(page, page_num, images_folder, image_c
     <meta charset="utf-8" />
     <meta name="viewport" content="width={page.rect.width},height={page.rect.height}" />
     <title>Page {page_num + 1}</title>
-    <link rel="stylesheet" type="text/css" href="style.css" />
+    <link rel="stylesheet" type="text/css" href="css/style.css" />
 </head>
 <body style="width:{page.rect.width}px;height:{page.rect.height}px; position:relative;">
 """  
