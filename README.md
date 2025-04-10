@@ -17,8 +17,10 @@ It accomplishes several additional things:
 ### Changes
 - changed urn to isbn number
 - convert backgrounds (Images) to rgb and put in image folder
+
 ***
 
+## Origianl ReadMe
 This python script generates a fixed-layout EPUB3 e-book from a PDF file in two variants:
 
 - __your_file_html.epub__ : A rich text variant, with a table of contents, clickable cross-references and hyperlinks. The text body is selectable and searchable. Vector drawings are converted to EPUB-suported SVG. Positioning of all text boxes is 95% reliable and the resulting file readable by most epub readers. For fine-tuning, use an EPUB editor like [Sigil](https://sigil-ebook.com/).

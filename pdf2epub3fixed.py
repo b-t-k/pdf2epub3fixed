@@ -29,8 +29,6 @@ import json
 import base64
 from datetime import datetime
 
-
-
 parser = argparse.ArgumentParser(description="Convert PDF to fixed-layout EPUB, conserving the table of contents")
 parser.add_argument("--pdf_path", type=str, help="Path to the sourcePDF file")
 parser.add_argument("--output_folder", type=str, help="Folder into which the resulting EPUB will be written")
@@ -83,7 +81,7 @@ defaults = {
 }
 no_pdf_message = "A PDF filename is required and must be provided either as first argument (pdf2epub3fixed.py --pdf_path your_file.pdf) or in the YAML configuration file."
 
-# Fallback to YAML values if yaml_cofig is defined, and if values not provided in command-line arguments, and to defaults if not privided in the yaml file
+# Fallback to YAML values if yaml_config is defined, and if values not provided in command-line arguments, and to defaults if not provided in the yaml file
 if args.yaml_config and os.path.isfile(args.yaml_config):
     print(f"Reading configuration file {args.yaml_config}. Parameters unspecified in the command line will be read from {args.yaml_config} whenever available")
     yaml_file = args.yaml_config
@@ -131,9 +129,7 @@ else :
     cover_image = cover_image if cover_image else defaults['cover_image']
 
 output_folder_html = os.path.join(output_folder,epub_file_name + "_html")
-output_folder_pageimages = os.path.join(output_folder,epub_file_name + "_pageimages")
-epub_file_path = os.path.join(output_folder,epub_file_name + "_html.epub")
-epub_file_path_pageimages = os.path.join(output_folder,epub_file_name + "_pageimages.epub")
+epub_file_path = os.path.join(output_folder,epub_file_name)
 
 def int_to_hex_color(value):
     return f"#{value:06X}"
@@ -353,17 +349,16 @@ def extract_pdf_to_json(doc, output_json_path):
     print(f"PDF content extracted and saved to {output_json_path}")
 
 def create_epub_structure_from_pdf(pdf_path, output_folder, variant, generate_json = True):    
-    """Creates the folder structure and files needed for a fixed-layout EPUB from a PDF. Generates a HTML based version with selectable text and single background images"""
+    """Creates the folder structure and files needed for a fixed-layout EPUB from a PDF. Generates a HTML based version with selectable text and single background image"""
     os.makedirs(output_folder, exist_ok=True)
     meta_inf_folder = os.path.join(output_folder, "META-INF")
     os.makedirs(meta_inf_folder, exist_ok=True)
     oebps_folder = os.path.join(output_folder, "OEBPS")
     os.makedirs(oebps_folder, exist_ok=True)
-    if variant == "html" : 
-        font_folder_output = os.path.join(oebps_folder, "font")
-        os.makedirs(font_folder_output, exist_ok=True)
-    else: 
-        font_folder_output = ""
+
+    font_folder_output = os.path.join(oebps_folder, "font")
+    os.makedirs(font_folder_output, exist_ok=True)
+
     images_folder = os.path.join(oebps_folder, "image")
     os.makedirs(images_folder, exist_ok=True)
     write_mimetype_file(output_folder)
@@ -419,14 +414,14 @@ def create_epub_structure_from_pdf(pdf_path, output_folder, variant, generate_js
     else : print("Your book has no cover image.")
 
     if variant == "html":
-        print("Verify if you have all the fonts actually used in the PDF. Add them if necessary, using these exact names:")
+        print("\nVerify if you have all the fonts actually used in the PDF. Add them if necessary, using these exact names:")
         for fnt in fonts_in_pdf:
             print(fnt)
     write_content_opf(oebps_folder,content_opf_items,page_html_files,variant)
     write_toc_xhtml(oebps_folder, doc)
     write_toc_ncx(oebps_folder, doc)
     write_css_and_font_files(oebps_folder,font_folder_output,variant)
-    print(f"EPUB structure created at: {output_folder}")
+    print(f"\nEPUB structure created at: {output_folder}")
 
 def is_all_caps(text):
   """
@@ -517,33 +512,19 @@ def generate_fixed_layout_html_selectable(page, page_num, images_folder, image_c
     # html_content, image_manifest, image_counter = process_images(pdf_path, images_folder, image_counter, html_content)
     return html_content, image_counter, image_manifest
 
-
-
 def process_images(pdf_path, output_folder_html):
-    # output_folder):
-    # get the current working directory
-    current_working_directory = os.getcwd()
-
-    # print output to the console
-    print("CURRENT ",current_working_directory)
-    print(output_folder_html)
-    # images_folder = os.path.join(current_working_directory,output_folder_html, "image")
-    # print("IMAGES ",images_folder)
-    # os.chdir(images_folder)
+    
     image_path = os.path.join(output_folder_html,"OEBPS/image")
+    
     """Process images on the page and prepare the listing of images in the manifest. Only used in compelx HTML layout"""
-    # image_manifest= []
-
+    
     doc = fitz.open(pdf_path)
-    # os.makedirs(export, exist_ok=True)
 
     for page_index in range(len(doc)):
         page = doc[page_index]
         images = page.get_images(full=True)
         for img_index, img in enumerate(images):
             xref = img[0]
-            base_image = doc.extract_image(xref)
-            # image_bytes = base_image["image"]
 
             pix = fitz.Pixmap(doc, xref)
             if pix.colorspace.n == 4:  # Check if it's CMYK
@@ -557,10 +538,6 @@ def process_images(pdf_path, output_folder_html):
             pix = None
 
     doc.close()
-
-    # return html_content, image_manifest, image_counter
-
-
 
 def zip_folder_to_epub(folder_path, epub_path):
     """Zips the folder structure and creates an EPUB file."""
@@ -579,11 +556,10 @@ def zip_folder_to_epub(folder_path, epub_path):
 
     # Rename the zip file to .epub
     os.rename(epub_temp_path, epub_path)
-    print(f"EPUB file created at: {epub_path}")
+    print(f"\nEPUB file created at: {epub_path}\n")
 
-# html version
+# Output html version
 print("Creating HTML version with selectable text")
 create_epub_structure_from_pdf(pdf_path, output_folder_html,"html",False)
 process_images(pdf_path,output_folder_html)
-
 zip_folder_to_epub(output_folder_html, epub_file_path)
