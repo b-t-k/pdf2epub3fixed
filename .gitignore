@@ -2,3 +2,7 @@
 *.ttf
 *.otf
 *.ttf
+*.xhtml
+*.pdf
+*.jpg
+/output
