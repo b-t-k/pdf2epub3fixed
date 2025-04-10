@@ -1,5 +1,24 @@
 # PDF2epub3fixed
 
+## Modified version
+This is a heavliy edited version that produces only one epub file that is made to have a single large background image and live text superimposed over it i.e. a children's picture book.
+
+It accomplishes several additional things:
+- adds basic accessibility features
+    - a11y metadata
+    - pagebreak markers
+    - landmarks
+    - languages to package and  indivdual pages
+- uses otf fonts as well as ttf fonts
+- creates jpg's rather than png's
+- moves css file to its own folder
+- detects and preserves font colors
+
+### Changes
+- changed urn to isbn number
+- convert backgrounds (Images) to rgb and put in image folder
+***
+
 This python script generates a fixed-layout EPUB3 e-book from a PDF file in two variants:
 
 - __your_file_html.epub__ : A rich text variant, with a table of contents, clickable cross-references and hyperlinks. The text body is selectable and searchable. Vector drawings are converted to EPUB-suported SVG. Positioning of all text boxes is 95% reliable and the resulting file readable by most epub readers. For fine-tuning, use an EPUB editor like [Sigil](https://sigil-ebook.com/).

@@ -18,7 +18,6 @@ Contributors: Bruce Keith
 """
 
 import os
-import sys
 import argparse
 import yaml
 import zipfile
@@ -32,7 +31,7 @@ from datetime import datetime
 
 
 
-parser = argparse.ArgumentParser(description="Convert PDF to fixed-layout EPUB, conserving the table of contents, inner cross-references and hyperlinks.")
+parser = argparse.ArgumentParser(description="Convert PDF to fixed-layout EPUB, conserving the table of contents")
 parser.add_argument("--pdf_path", type=str, help="Path to the sourcePDF file")
 parser.add_argument("--output_folder", type=str, help="Folder into which the resulting EPUB will be written")
 parser.add_argument("--title", type=str, help="Book title")
@@ -136,6 +135,9 @@ output_folder_pageimages = os.path.join(output_folder,epub_file_name + "_pageima
 epub_file_path = os.path.join(output_folder,epub_file_name + "_html.epub")
 epub_file_path_pageimages = os.path.join(output_folder,epub_file_name + "_pageimages.epub")
 
+def int_to_hex_color(value):
+    return f"#{value:06X}"
+
 def write_mimetype_file(output_folder):
     mimetype_path = os.path.join(output_folder, "mimetype")
     with open(mimetype_path, "w", encoding="utf-8") as f:
@@ -180,25 +182,40 @@ def write_content_opf(oebps_folder,content_opf_items,page_html_files,variant):
                 media_type = "application/vnd.ms-opentype"  # Correct media type for .otf
             font_items += f'<item id="{font["font_name"]}" href="{font["font_path"]}" media-type="{media_type}"/>\n'    
     content_opf_content = f"""<?xml version="1.0" encoding="UTF-8"?>
-<package version="3.0" xmlns="http://www.idpf.org/2007/opf" unique-identifier="bookid" prefix="rendition: http://www.idpf.org/vocab/rendition/# ibooks: http://vocabulary.itunes.apple.com/rdf/ibooks/vocabulary-extensions-1.0/">
+<package version="3.0" xmlns="http://www.idpf.org/2007/opf" unique-identifier="bookid" prefix="rendition: http://www.idpf.org/vocab/rendition/# ibooks: http://vocabulary.itunes.apple.com/rdf/ibooks/vocabulary-extensions-1.0/"  xml:lang="{language}">
     <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
-        <meta name="generator" content="pdf2epub3fixed" />
+        <meta name="generator" content="pdf2epub3fixed-mod" />
         <meta property="ibooks:specified-fonts">true</meta>
         <dc:title>{title}</dc:title>
         <dc:creator id="creator">{author}</dc:creator>
         <meta refines="#creator" property="role" scheme="marc:relators">aut</meta>
-        <dc:language>{language}</dc:language>
+        <dc:identifier id="bookid">urn:isbn:{urn}</dc:identifier>
         <dc:publisher>{publisher}</dc:publisher>
+        <dc:language>{language}</dc:language>
         <dc:date>{date}</dc:date>
-        <dc:description>{description}</dc:description>
         <dc:rights>{rights}</dc:rights>
-        <dc:identifier id="bookid">urn:uuid:{urn}</dc:identifier>
-        <meta name="cover" content="book-cover" />
+        <dc:description>{description}</dc:description>
         <meta property="dcterms:modified">{datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ')}</meta>
+        <meta name="cover" content="book-cover" />
         <!--fixed-layout options-->
 		<meta property="rendition:layout">pre-paginated</meta>
 		<meta property="rendition:orientation">portrait</meta>
 		<meta property="rendition:spread">none</meta>
+        <!--a11y options-->
+        <meta property="schema:accessibilitySummary">This publication conforms to WCAG 2.0 Level A.</meta>
+        <meta property="schema:accessModeSufficient">visual</meta>
+        <meta property="schema:accessibilityFeature">alternativeText</meta>
+        <meta property="schema:accessibilityFeature">highContrastDisplay</meta>
+        <meta property="schema:accessibilityFeature">readingOrder</meta>
+        <meta property="schema:accessibilityFeature">structuralNavigation</meta>
+        <meta property="schema:accessibilityFeature">pageNavigation</meta>
+        <meta property="schema:accessibilityFeature">pageBreakMarkers</meta>
+        <meta property="schema:accessibilityFeature">tableOfContents</meta>
+        <meta property="schema:accessMode">textual</meta>
+        <meta property="schema:accessMode">visual</meta>
+        <meta property="schema:accessModeSufficient">textual</meta>
+        <meta property="schema:accessModeSufficient">visual</meta>
+        <meta property="schema:accessibilityHazard">none</meta>
     </metadata>
     <manifest>
         <item id="toc" href="toc.ncx" media-type="application/x-dtbncx+xml"/>
@@ -215,7 +232,6 @@ def write_content_opf(oebps_folder,content_opf_items,page_html_files,variant):
     with open(content_opf_path, "w", encoding="utf-8") as f:
         f.write(content_opf_content)
 
-
 def write_toc_xhtml(oebps_folder, doc):
     """This generates an EPUB 3 type navigation."""
     toc_xhtml_path = os.path.join(oebps_folder, "toc.xhtml")
@@ -225,26 +241,32 @@ def write_toc_xhtml(oebps_folder, doc):
         toc_xhtml_points.append(f"""
         <li><a href="page_{t[2]}.xhtml">{t[1]}</a></li>
         """)
-    toc_xhtml_content = f"""<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
+    toc_xhtml_content = f"""<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" lang="{language}" xml:lang="{language}">
     <head>
-        <title>{title}</title>
+        <title>Table of Contents</title>
     </head>
     <body>
-        <nav epub:type="toc" id="toc">
-            <h1>Table of Contents</h1>
+        <nav id="toc" epub:type="toc" role="doc-toc" aria-labelledby="nav_contents">
+            <h1 id="nav_contents">Contents</h1>
             <ol>
                 {"".join(toc_xhtml_points)}
             </ol>
         </nav>
+        <nav id="landmarks" epub:type="landmarks" aria-labelledby="nav_landmarks">
+        <h1 id="nav_landmarks">Landmarks</h1>
+        <ol>
+            <li><a epub:type="cover" href="page_1.xhtml">Cover</a></li>
+            <li><a epub:type="bodymatter" href="page_2.xhtml">{title}</a></li>
+    </ol>
+    </nav>
     </body>
 </html>
 """
     with open(toc_xhtml_path, "w", encoding="utf-8") as f:
         f.write(toc_xhtml_content)
 
-
 def write_toc_ncx(oebps_folder, doc):
-    """This generates an EPUB 2 type navigation. Depracated."""
+    """This generates an EPUB 2 type navigation. Deprecated."""
     toc_ncx_path = os.path.join(oebps_folder, "toc.ncx")
     toc = doc.get_toc() # [[1, 'Préface', 7], [1, 'Les deux mélodies fondamentales', 17], ...]
     toc_ncx_points = []
@@ -260,7 +282,7 @@ def write_toc_ncx(oebps_folder, doc):
     toc_ncx_content = f"""<?xml version="1.0" encoding="UTF-8"?>
 <ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1">
     <head>
-        <meta name="dtb:uid" content="urn:uuid:12345678-1234-1234-1234-123456789abc"/>
+        <meta name="dtb:uid" content="urn:isbn:{urn}"/>
         <meta name="dtb:depth" content="1"/>
         <meta name="dtb:totalPageCount" content="{doc.page_count}"/>
         <meta name="dtb:maxPageNumber" content="{doc.page_count}"/>
@@ -310,25 +332,6 @@ img { position: absolute; }
             font_path_output = os.path.join(font_folder_output, output_filename)
             shutil.copyfile(font['font_path'], font_path_output)
 
-def extract_crosslinks(page):
-    """Extract crosslinks using page.get_links() and add them to JSON"""
-    links = []
-    for link in page.get_links():
-        rect = link.get('from')
-        point = link.get('to')
-        links.append({
-            "kind" : link.get('kind'), 
-            "xref" : link.get('xref'),  
-            "uri" : link.get('uri'),
-            "nameddest": link.get('nameddest'),
-            "id" : link.get('id'),
-            "zoom" : link.get('zoom'),
-            "page" : link.get('page'),
-            "to" : [point.x, point.y] if point else None,
-            "rect": [rect.x0, rect.y0, rect.x1, rect.y1] if rect else None
-        })
-    return links
-    
 def extract_pdf_to_json(doc, output_json_path):
     """Extracts all pages of a PDF as JSON and writes to a file."""
     pages_data = []
@@ -340,11 +343,9 @@ def extract_pdf_to_json(doc, output_json_path):
             if "image" in block and isinstance(block["image"], bytes):
                 # Convert image bytes to base64 string
                 block["image"] = base64.b64encode(block["image"]).decode("utf-8")
-        crosslinks = extract_crosslinks(page)  
         page_data = {
             "page_num": page_num + 1,  # Human-readable page number
             "content": page_dict,
-            "crosslinks": crosslinks
         }
         pages_data.append(page_data)
     with open(output_json_path, "w", encoding="utf-8") as json_file:
@@ -352,7 +353,7 @@ def extract_pdf_to_json(doc, output_json_path):
     print(f"PDF content extracted and saved to {output_json_path}")
 
 def create_epub_structure_from_pdf(pdf_path, output_folder, variant, generate_json = True):    
-    """Creates the folder structure and files needed for a fixed-layout EPUB from a PDF. Depending on the variant, generate a HTML based version with selectable texte or a version consisting of image renderings of the PDF"""
+    """Creates the folder structure and files needed for a fixed-layout EPUB from a PDF. Generates a HTML based version with selectable text and single background images"""
     os.makedirs(output_folder, exist_ok=True)
     meta_inf_folder = os.path.join(output_folder, "META-INF")
     os.makedirs(meta_inf_folder, exist_ok=True)
@@ -393,10 +394,7 @@ def create_epub_structure_from_pdf(pdf_path, output_folder, variant, generate_js
             page_html, image_counter, image_manifest = generate_fixed_layout_html_selectable(
                 page, page_num, images_folder, image_counter
             )
-        else :
-            page_html, image_counter, image_manifest = generate_fixed_layout_html(
-                page, page_num, images_folder, image_counter
-            )
+
         with open(html_file_path, "w", encoding="utf-8") as f:
             f.write(page_html)
         # Add to manifest and toc
@@ -430,27 +428,6 @@ def create_epub_structure_from_pdf(pdf_path, output_folder, variant, generate_js
     write_css_and_font_files(oebps_folder,font_folder_output,variant)
     print(f"EPUB structure created at: {output_folder}")
 
-def process_red_boxes_links(frompage, html_content):
-    """Extracts red boxes with links and adds them as cross-references in HTML."""
-    for link in frompage.get_links():
-        rect = link.get('from')
-        # point = link.get('to')
-        topage = link.get('page')
-        # kind = link.get('kind') 
-        # xref = link.get('xref')  
-        uri = link.get('uri')
-        # nameddest = link.get('nameddest')
-        # id = link.get('id')
-        # zoom = link.get('zoom')
-        # to = [point.x, point.y] if point else None,
-        width = rect.x1 - rect.x0
-        height = rect.y1 - rect.y0
-        if topage is not None:
-            html_content += f'<a href="page_{topage + 1}.xhtml" style="position:absolute; left:{rect.x0}px; top:{rect.y0}px; width:{width}px; height:{height}px; border:0.3px solid blue; display:block; "></a>\n'
-        elif uri is not None :
-            html_content += f'<a href="{uri}" style="position:absolute; left:{rect.x0}px; top:{rect.y0}px; width:{width}px; height:{height}px; border:0.3px solid blue; display:block; "></a>\n' 
-    return html_content
-
 def is_all_caps(text):
   """
   Checks if the given text is entirely in uppercase. There is no way to extract smallcaps status from pdf, so using this as fallback 
@@ -460,247 +437,130 @@ def is_all_caps(text):
       return False
   return True
 
-def generate_fixed_layout_html(page, page_num, images_folder, image_counter, dpi=300):
-    """
-    Generates fixed-layout HTML for a single PDF page by rendering the page as an image.
-    """
+def generate_fixed_layout_html_selectable(page, page_num, images_folder, image_counter, dpi=300):
+    """Generates fixed-layout HTML with selectable text for a single PDF page. Now renders background image for use in picture books. Also renders complete sentences without spans or divs."""
+    page_width = page.rect.width
+    page_height = page.rect.height
     html_content = f"""<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" lang="{language}" xml:lang="{language}">
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width={page.rect.width},height={page.rect.height}" />
+    <meta name="viewport" content="width={page_width},height={page_height}" />
     <title>Page {page_num + 1}</title>
     <link rel="stylesheet" type="text/css" href="css/style.css" />
+    <style>
+        body {{
+            width: {page_width}px;
+            height: {page_height}px;
+            position: relative;
+            overflow: hidden; /* Prevent text outside page bounds from being visible */
+        }}
+        div {{
+            position: absolute;
+            white-space: pre; /* Preserve whitespace */
+            -webkit-user-select: text; /* Enable text selection for webkit browsers */
+            -moz-user-select: text;    /* Enable text selection for Firefox */
+            -ms-user-select: text;     /* Enable text selection for IE/Edge */
+            user-select: text;         /* Standard property */
+            overflow: visible; /* Ensure text is visible even if it slightly overflows its container */
+        }}
+    </style>
 </head>
-<body style="width:{page.rect.width}px;height:{page.rect.height}px; position:relative;">
+<body style="width:{page_width}px;height:{page_height}px; position:relative; overflow: hidden;">
+<span epub:type="pagebreak" id="page{page_num}" role="doc-pagebreak" aria-label="Page {page_num}." />
 """
 
-    # Render the PDF page as an image
-    pix = page.get_pixmap(dpi=dpi)
+    # Render the PDF page as a background image
+    # pix = page.get_pixmap(dpi=dpi)
     image_filename = f"page_{page_num + 1}.jpg"
-    image_path = os.path.join(images_folder, image_filename)
-    pix.save(image_path, "jpeg")
+    # image_path = os.path.join(images_folder, image_filename)
+    # pix.save(image_path, "jpeg")
+    html_content += f'<img alt="ALT_TEXT_HERE" src="image/{image_filename}" style="position:absolute; left:0px; top:0px; width:{page_width}px; height:{page_height}px; z-index: -1;" />\n'
 
-    # Add the rendered page image to the HTML content
-    html_content += f"""<img src="image/{image_filename}" style="position:absolute; left:0px; top:0px; width:{page.rect.width}px; height:{page.rect.height}px;" />\n"""
+    text_instances = page.get_text("dict")
+    if "blocks" in text_instances:
+        for block in text_instances["blocks"]:
+            if "lines" in block:
+                for line in block.get('lines', []):
+                    for span in line.get('spans', []):
+                        font_name = span["font"]
+                        if font_name not in fonts_in_pdf:
+                            fonts_in_pdf.append(font_name)
+                        if 'text' in span:
+                            left = span['origin'][0]
+                            top = span['origin'][1]
+                            size = span['size']
+                            font = span['font']
+                            text = span['text']
+                            color = span['color']
+                            
+                            if int(color) != 0:
+                                hex_color = int_to_hex_color(int(color))
+                                text_color = f" color:{hex_color};"
+                            else: 
+                                text_color = ""
+                            
+                            if is_all_caps(text):
+                                html_content += f'<div style="left:{left:.2f}px; top:{top:.2f}px; font-size:{size:.2f}px; font-family:\'{font}\'; font-variant: small-caps;"><p>{text}</p></div>\n'
+                            else:
+                                html_content += f'<div style="left:{left:.2f}px; top:{top:.2f}px; font-size:{size:.2f}px; font-family:\'{font}\';{text_color}"><p>{text}</p></div>\n'
 
-    html_content = process_red_boxes_links(page, html_content)
+    # html_content = process_red_boxes_links(page, html_content)
     html_content += "</body></html>"
 
-    # Update image manifest
     image_manifest = [{
         'id': f"image_{image_counter}",
         'href': f"image/{image_filename}"
     }]
     image_counter += 1
-
+    # html_content, image_manifest, image_counter = process_images(pdf_path, images_folder, image_counter, html_content)
     return html_content, image_counter, image_manifest
 
 
-def generate_fixed_layout_html_selectable(page, page_num, images_folder, image_counter):
-    """Generates fixed-layout HTML for a single PDF page, including images. Using get_text("dict") and get_text("words"). Is difficult to make work, because the word splitting and the span splitting inside words sometimes overlap"""
-    html_content = f"""<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width={page.rect.width},height={page.rect.height}" />
-    <title>Page {page_num + 1}</title>
-    <link rel="stylesheet" type="text/css" href="css/style.css" />
-</head>
-<body style="width:{page.rect.width}px;height:{page.rect.height}px; position:relative;">
-"""  
-    text_instances = page.get_text("rawdict")  # Extract layout-based text
 
-    # Extract words and their bounding boxes
-    if "blocks" in text_instances:
-        for block_no, block in enumerate(text_instances["blocks"]):
-            if "lines" in block:
-                for line_no, line in enumerate(block["lines"]):
-                    for span in line["spans"]:
-                        font_name = span["font"]
-                        if font_name not in fonts_in_pdf:
-                            fonts_in_pdf.append(font_name)
-                        font_size = span["size"]
-                        words = []
-                        current_word = ""
-                        first_letter_start_x = None
-                        first_letter_start_y = None
-                        for char_data in span['chars']:
-                            char = char_data['c'] # {'origin': (80.331, 222.817), 'bbox': (80.3, 213.5, 86.6, 225.3), 'c': 'A'}, 
-                            if char != ' ' :
-                                if not current_word:  # If the word is empty, i.e. new, start of a new word delimiter
-                                    first_letter_start_x = char_data['bbox'][0]
-                                    first_letter_start_y = char_data['bbox'][1]
-                                current_word += char
-                            else :
-                                if current_word:  # Since the new character is a space, we can add the current word to the list of words
-                                    last_letter_end_x = char_data['bbox'][2]
-                                    last_letter_end_y = char_data['bbox'][3]
-                                    words.append({
-                                        'word': current_word, 
-                                        'bbox': (first_letter_start_x, first_letter_start_y, last_letter_end_x, last_letter_end_y)
-                                    })
-                                    current_word = ""
-                                    first_letter_start_x = None
-                                    first_letter_start_y = None
-                                    words.append({'word': ' ', 'bbox': char_data['bbox']}) # Add space as a word
-                        # Add the last word if there is any
-                        if current_word:
-                            last_letter_end_x = char_data['bbox'][2]
-                            last_letter_end_y = char_data['bbox'][3]
-                            words.append({
-                                'word': current_word, 'bbox': (first_letter_start_x, first_letter_start_y, last_letter_end_x, last_letter_end_y)
-                            })
-                        # span_x0, span_y0, span_x1, span_y1 = span["bbox"]
-                        for word in words :
-                            word_text = word['word']
-                            x0, y0, x1, y1 = word['bbox']
-                            width = x1 - x0
-                            height = y1 - y0
-                            word_text = word_text.replace('&', '&amp;').replace(u'\u00A0', '&nbsp;')
-                            '''
-                            if len(word_text) > 1 and page_num > 353 :
-                                if is_all_caps(word_text):
-                                    word_text = f"<span style='font-variant:small-caps'>{word_text[0] + word_text[1:].lower()}</span>"
-                                    print(word_text) 
-                            '''
-                            html_content += f"""<div style="position:absolute; left:{x0}px; top:{y0}px; width:{width}px; height:{height}px; font-family:'{font_name}'; font-size:{font_size}px; white-space:nowrap;">{word_text}</div>\n"""
-    html_content, image_manifest, image_counter = process_images(text_instances, images_folder, image_counter, html_content)
-    html_content += process_vector_drawings(page)
-    html_content = process_red_boxes_links(page, html_content)
-    html_content += "</body></html>"
-    return html_content, image_counter, image_manifest
+def process_images(pdf_path, output_folder_html):
+    # output_folder):
+    # get the current working directory
+    current_working_directory = os.getcwd()
 
-def process_images(text_instances, images_folder, image_counter, html_content):
+    # print output to the console
+    print("CURRENT ",current_working_directory)
+    print(output_folder_html)
+    # images_folder = os.path.join(current_working_directory,output_folder_html, "image")
+    # print("IMAGES ",images_folder)
+    # os.chdir(images_folder)
+    image_path = os.path.join(output_folder_html,"OEBPS/image")
     """Process images on the page and prepare the listing of images in the manifest. Only used in compelx HTML layout"""
-    image_manifest= []
-    if 'blocks' in text_instances:
-        for block in text_instances['blocks']:
-            if 'image' in block :
-                if isinstance(block['image'], bytes):
-                    # Extract and save image
-                    image_data = block['image']
-                    image = Image.open(io.BytesIO(image_data))
-                    image = image.convert("RGB")  # Convert to RGB before saving as JPEG
-                    image_filename = f"image_{image_counter}.jpg"
-                    image_path = os.path.join(images_folder, image_filename)
-                    image.save(image_path, format="JPEG")
-                    # Add the image to the manifest
-                    image_manifest.append({
-                        'id': f"image_{image_counter}",
-                        'href': f"image/{image_filename}"
-                    })
-                    # Get image position and dimensions
-                    x0, y0, x1, y1 = block['bbox']
-                    width = x1 - x0
-                    height = y1 - y0
-                    html_content += f'<figure id="_image_{image_counter}"><img src="image/{image_filename}" style="left:{x0}px; top:{y0}px; width:{width}px; height:{height}px;" />\n</figure>'
-                    image_counter += 1
-                else:
-                    continue  # Skip unsupported image formats
-    return html_content, image_manifest, image_counter
-def process_vector_drawings(page) :
-    vectors = page.get_drawings()
-    svg_content = ""
-    if len(vectors) > 0 :
-        svg_elements = []
-        for item in vectors:
-            if item['type'] == 's':  # Assuming 's' stands for stroke or line
-                for action, *points in item['items']:
-                    if action == 'l':  # Assuming 'l' stands for line
-                        start_point, end_point = points
-                        x1, y1 = start_point.x, start_point.y
-                        x2, y2 = end_point.x, end_point.y
-                        stroke_color = f"rgb({int(item['color'][0] * 255)}, {int(item['color'][1] * 255)}, {int(item['color'][2] * 255)})"
-                        stroke_width = item['width']
-                        stroke_opacity = item['stroke_opacity']
+    # image_manifest= []
 
-                        line_element = f'''
-                        <line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}"
-                            stroke="{stroke_color}"
-                            stroke-width="{stroke_width}"
-                            stroke-opacity="{stroke_opacity}" />
-                        '''
-                        svg_elements.append(line_element)
+    doc = fitz.open(pdf_path)
+    # os.makedirs(export, exist_ok=True)
 
-            elif item['type'] == 'r':  # Assuming 'r' stands for rectangle
-                x, y, width, height = item['rect'].x, item['rect'].y, item['rect'].width, item['rect'].height
-                stroke_color = f"rgb({int(item['color'][0] * 255)}, {int(item['color'][1] * 255)}, {int(item['color'][2] * 255)})"
-                stroke_width = item['width']
-                stroke_opacity = item['stroke_opacity']
-                fill_color = f"rgb({int(item['fill'][0] * 255)}, {int(item['fill'][1] * 255)}, {int(item['fill'][2] * 255)})" if item['fill'] else 'none'
-                fill_opacity = item['fill_opacity'] if item['fill_opacity'] is not None else 1.0
+    for page_index in range(len(doc)):
+        page = doc[page_index]
+        images = page.get_images(full=True)
+        for img_index, img in enumerate(images):
+            xref = img[0]
+            base_image = doc.extract_image(xref)
+            # image_bytes = base_image["image"]
 
-                rect_element = f'''
-                <rect x="{x}" y="{y}" width="{width}" height="{height}"
-                    stroke="{stroke_color}"
-                    stroke-width="{stroke_width}"
-                    stroke-opacity="{stroke_opacity}"
-                    fill="{fill_color}"
-                    fill-opacity="{fill_opacity}" />
-                '''
-                svg_elements.append(rect_element)
+            pix = fitz.Pixmap(doc, xref)
+            if pix.colorspace.n == 4:  # Check if it's CMYK
+                pix = fitz.Pixmap(fitz.csRGB, pix)  # Convert to RGB
 
-            elif item['type'] == 'e':  # Assuming 'e' stands for ellipse
-                cx, cy = item['center'].x, item['center'].y
-                rx, ry = item['radius'].x, item['radius'].y
-                stroke_color = f"rgb({int(item['color'][0] * 255)}, {int(item['color'][1] * 255)}, {int(item['color'][2] * 255)})"
-                stroke_width = item['width']
-                stroke_opacity = item['stroke_opacity']
-                fill_color = f"rgb({int(item['fill'][0] * 255)}, {int(item['fill'][1] * 255)}, {int(item['fill'][2] * 255)})" if item['fill'] else 'none'
-                fill_opacity = item['fill_opacity'] if item['fill_opacity'] is not None else 1.0
+            image = Image.open(io.BytesIO(pix.tobytes()))
+            image = image.convert("RGB") # Ensure PIL also treats it as RGB
+            image.save(f"{image_path}/page_{page_index+1}.jpg", "JPEG")
 
-                ellipse_element = f'''
-                <ellipse cx="{cx}" cy="{cy}" rx="{rx}" ry="{ry}"
-                        stroke="{stroke_color}"
-                        stroke-width="{stroke_width}"
-                        stroke-opacity="{stroke_opacity}"
-                        fill="{fill_color}"
-                        fill-opacity="{fill_opacity}" />
-                '''
-                svg_elements.append(ellipse_element)
+            # Clean up the Pixmap object
+            pix = None
 
-            elif item['type'] == 'p':  # Assuming 'p' stands for polygon or path
-                path_data = []
-                for action, *points in item['items']:
-                    if action == 'M':  # Move to
-                        x, y = points[0].x, points[0].y
-                        path_data.append(f"M {x} {y}")
-                    elif action == 'L':  # Line to
-                        x, y = points[0].x, points[0].y
-                        path_data.append(f"L {x} {y}")
-                    elif action == 'C':  # Cubic Bezier curve
-                        x1, y1 = points[0].x, points[0].y
-                        x2, y2 = points[1].x, points[1].y
-                        x, y = points[2].x, points[2].y
-                        path_data.append(f"C {x1} {y1}, {x2} {y2}, {x} {y}")
-                    elif action == 'Z':  # Close path
-                        path_data.append("Z")
+    doc.close()
 
-                stroke_color = f"rgb({int(item['color'][0] * 255)}, {int(item['color'][1] * 255)}, {int(item['color'][2] * 255)})"
-                stroke_width = item['width']
-                stroke_opacity = item['stroke_opacity']
-                fill_color = f"rgb({int(item['fill'][0] * 255)}, {int(item['fill'][1] * 255)}, {int(item['fill'][2] * 255)})" if item['fill'] else 'none'
-                fill_opacity = item['fill_opacity'] if item['fill_opacity'] is not None else 1.0
+    # return html_content, image_manifest, image_counter
 
-                path_element = f'''
-                <path d="{' '.join(path_data)}"
-                    stroke="{stroke_color}"
-                    stroke-width="{stroke_width}"
-                    stroke-opacity="{stroke_opacity}"
-                    fill="{fill_color}"
-                    fill-opacity="{fill_opacity}" />
-                '''
-                svg_elements.append(path_element)
 
-        svg_content += f'''<svg xmlns="http://www.w3.org/2000/svg" version="1.1">
-            {''.join(svg_elements)}
-        </svg>
-        '''
-        print("... contains SVG")
-    return svg_content
 
 def zip_folder_to_epub(folder_path, epub_path):
     """Zips the folder structure and creates an EPUB file."""
@@ -723,10 +583,7 @@ def zip_folder_to_epub(folder_path, epub_path):
 
 # html version
 print("Creating HTML version with selectable text")
-create_epub_structure_from_pdf(pdf_path, output_folder_html,"html",True)
-zip_folder_to_epub(output_folder_html, epub_file_path)
+create_epub_structure_from_pdf(pdf_path, output_folder_html,"html",False)
+process_images(pdf_path,output_folder_html)
 
-# pageimages version
-print("Creating version consiting of PAGE IMAGES")
-create_epub_structure_from_pdf(pdf_path, output_folder_pageimages,"pageimages",False)
-zip_folder_to_epub(output_folder_pageimages, epub_file_path_pageimages)
+zip_folder_to_epub(output_folder_html, epub_file_path)
