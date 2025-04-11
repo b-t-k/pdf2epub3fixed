@@ -28,6 +28,8 @@ import io
 import json
 import base64
 from datetime import datetime
+from titlecase import titlecase
+
 
 parser = argparse.ArgumentParser(description="Convert PDF to fixed-layout EPUB, conserving the table of contents")
 parser.add_argument("--pdf_path", type=str, help="Path to the sourcePDF file")
@@ -167,7 +169,9 @@ def write_meta_inf_container_xml(meta_inf_folder):
     with open(container_path, "w", encoding="utf-8") as f:
         f.write(container_content)
 
-def write_content_opf(oebps_folder,content_opf_items,page_html_files,variant):
+def write_content_opf(oebps_folder,content_opf_items,page_html_files,variant,page):
+    page_width = int(page.rect.width)
+    page_height = int(page.rect.height)
     """Write OEBPS/content.opf"""
     content_opf_path = os.path.join(oebps_folder, "content.opf")
     font_items = ""
@@ -180,8 +184,6 @@ def write_content_opf(oebps_folder,content_opf_items,page_html_files,variant):
     content_opf_content = f"""<?xml version="1.0" encoding="UTF-8"?>
 <package version="3.0" xmlns="http://www.idpf.org/2007/opf" unique-identifier="bookid" prefix="rendition: http://www.idpf.org/vocab/rendition/# ibooks: http://vocabulary.itunes.apple.com/rdf/ibooks/vocabulary-extensions-1.0/"  xml:lang="{language}">
     <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
-        <meta name="generator" content="pdf2epub3fixed-mod" />
-        <meta property="ibooks:specified-fonts">true</meta>
         <dc:title>{title}</dc:title>
         <dc:creator id="creator">{author}</dc:creator>
         <meta refines="#creator" property="role" scheme="marc:relators">aut</meta>
@@ -192,11 +194,16 @@ def write_content_opf(oebps_folder,content_opf_items,page_html_files,variant):
         <dc:rights>{rights}</dc:rights>
         <dc:description>{description}</dc:description>
         <meta property="dcterms:modified">{datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ')}</meta>
+        <meta name="generator" content="pdf2epub3fixed-mod" />
+        <meta property="ibooks:specified-fonts">true</meta>
         <meta name="cover" content="book-cover" />
         <!--fixed-layout options-->
-		<meta property="rendition:layout">pre-paginated</meta>
-		<meta property="rendition:orientation">portrait</meta>
-		<meta property="rendition:spread">none</meta>
+        <meta name="fixed-layout" content="true"/>
+        <meta name="original-resolution" content="{page_width}x{page_height}"/>
+        <meta property="rendition:spread">landscape</meta>
+        <meta name="RegionMagnification" content="true"/>
+        <meta property="rendition:layout">pre-paginated</meta>
+
         <!--a11y options-->
         <meta property="schema:accessibilitySummary">This publication conforms to WCAG 2.0 Level A.</meta>
         <meta property="schema:accessModeSufficient">visual</meta>
@@ -294,7 +301,10 @@ def write_toc_ncx(oebps_folder, doc):
     with open(toc_ncx_path, "w", encoding="utf-8") as f:
         f.write(toc_ncx_content)
 
-def write_css_and_font_files(oebps_folder,font_folder_output,variant):
+def write_css_and_font_files(oebps_folder,font_folder_output,variant,page):
+
+    page_width = int(page.rect.width)
+    page_height = int(page.rect.height)
         # Step 8: Add a CSS file with @font-face
     css_folder = os.path.join(oebps_folder, "css")
     os.makedirs(css_folder, exist_ok=True)  # Create the 'css' folder if it doesn't exist
@@ -310,14 +320,41 @@ def write_css_and_font_files(oebps_folder,font_folder_output,variant):
         font-weight: normal;
         src: url(\"../font/{output_filename_css}\");
     }}"""
-    css_content += """body, div, dl, dt, dd, h1, h2, h3, h4, h5, h6, p, pre, code, blockquote, figure {
+    css_content += """
+body, div, dl, dt, dd, h1, h2, h3, h4, h5, h6, p, pre, code, blockquote, figure {
 	margin:0;
 	padding:0;
 	border-width:0;
 	text-rendering:optimizeSpeed;
 }
-div { position: absolute; }
-img { position: absolute; }
+div { 
+    position: absolute;
+}
+img {
+	position: absolute; 
+	z-index: -1;
+}
+"""
+    css_content += f"""
+body {{
+    width: {page_width}px;
+    height: {page_height}px;
+    position: relative;
+    overflow: hidden; /* Prevent text outside page bounds from being visible */
+}}
+div {{
+    position: absolute;
+    white-space: pre; /* Preserve whitespace */
+    -webkit-user-select: text; /* Enable text selection for webkit browsers */
+    -moz-user-select: text;    /* Enable text selection for Firefox */
+    -ms-user-select: text;     /* Enable text selection for IE/Edge */
+    user-select: text;         /* Standard property */
+    overflow: visible; /* Ensure text is visible even if it slightly overflows its container */
+}}
+strong {{
+    font-weight:normal;
+	text-transform:uppercase;
+}}
 """
     with open(css_path, "w", encoding="utf-8") as f:
         f.write(css_content)
@@ -400,7 +437,10 @@ def create_epub_structure_from_pdf(pdf_path, output_folder, variant, generate_js
             content_opf_items.append(
                 f'<item id="page_{img["id"]}" href="{img["href"]}" media-type="image/jpeg"/>\n'
             )
-        page_html_files.append(f'<itemref idref="page_{page_num + 1}"/>\n')
+        page_id = f"page_{page_num + 1}"
+        spread = "page-spread-right" if (page_num % 2 == 0) else "page-spread-left"
+        page_html_files.append(f'<itemref idref="{page_id}" properties="{spread}"/>\n')
+        # page_html_files.append(f'<itemref idref="page_{page_num + 1}"/>\n')
     print("pages processed.")
 
     # Add a cover image if available  
@@ -417,10 +457,10 @@ def create_epub_structure_from_pdf(pdf_path, output_folder, variant, generate_js
         print("\nVerify if you have all the fonts actually used in the PDF. Add them if necessary, using these exact names:")
         for fnt in fonts_in_pdf:
             print(fnt)
-    write_content_opf(oebps_folder,content_opf_items,page_html_files,variant)
+    write_content_opf(oebps_folder,content_opf_items,page_html_files,variant,page)
     write_toc_xhtml(oebps_folder, doc)
     write_toc_ncx(oebps_folder, doc)
-    write_css_and_font_files(oebps_folder,font_folder_output,variant)
+    write_css_and_font_files(oebps_folder,font_folder_output,variant,page)
     print(f"\nEPUB structure created at: {output_folder}")
 
 def is_all_caps(text):
@@ -444,23 +484,7 @@ def generate_fixed_layout_html_selectable(page, page_num, images_folder, image_c
     <meta name="viewport" content="width={page_width},height={page_height}" />
     <title>Page {page_num + 1}</title>
     <link rel="stylesheet" type="text/css" href="css/style.css" />
-    <style>
-        body {{
-            width: {page_width}px;
-            height: {page_height}px;
-            position: relative;
-            overflow: hidden; /* Prevent text outside page bounds from being visible */
-        }}
-        div {{
-            position: absolute;
-            white-space: pre; /* Preserve whitespace */
-            -webkit-user-select: text; /* Enable text selection for webkit browsers */
-            -moz-user-select: text;    /* Enable text selection for Firefox */
-            -ms-user-select: text;     /* Enable text selection for IE/Edge */
-            user-select: text;         /* Standard property */
-            overflow: visible; /* Ensure text is visible even if it slightly overflows its container */
-        }}
-    </style>
+
 </head>
 <body style="width:{page_width}px;height:{page_height}px; position:relative; overflow: hidden;">
 <span epub:type="pagebreak" id="page{page_num}" role="doc-pagebreak" aria-label="Page {page_num}." />
@@ -497,7 +521,7 @@ def generate_fixed_layout_html_selectable(page, page_num, images_folder, image_c
                                 text_color = ""
                             
                             if is_all_caps(text):
-                                html_content += f'<div style="left:{left:.2f}px; top:{top:.2f}px; font-size:{size:.2f}px; font-family:\'{font}\'; font-variant: small-caps;"><p>{text}</p></div>\n'
+                                html_content += f'<div style="left:{left:.2f}px; top:{top:.2f}px; font-size:{size:.2f}px; font-family:\'{font}\'; {text_color}"><p><strong>{titlecase(text)}</strong></p></div>\n'
                             else:
                                 html_content += f'<div style="left:{left:.2f}px; top:{top:.2f}px; font-size:{size:.2f}px; font-family:\'{font}\';{text_color}"><p>{text}</p></div>\n'
 

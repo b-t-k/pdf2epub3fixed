@@ -11,16 +11,18 @@ It accomplishes several additional things:
     - languages to package and  indivdual pages
 - uses otf fonts as well as ttf fonts
 - creates jpg's rather than png's
-- moves css file to its own folder
+- moves css file to its own folder and update
 - detects and preserves font colors
 
 ### Changes
 - changed urn to isbn number
 - convert backgrounds (Images) to rgb and put in image folder
+- adjust opf rendition metadata and add page spreads to spine. It makes the assumption there will be a cover so the first item will always be `page-spread-right`
+- modified the smallcaps function to change all caps to `<strong>`
 
 ***
 
-## Origianl ReadMe
+## Original ReadMe
 This python script generates a fixed-layout EPUB3 e-book from a PDF file in two variants:
 
 - __your_file_html.epub__ : A rich text variant, with a table of contents, clickable cross-references and hyperlinks. The text body is selectable and searchable. Vector drawings are converted to EPUB-suported SVG. Positioning of all text boxes is 95% reliable and the resulting file readable by most epub readers. For fine-tuning, use an EPUB editor like [Sigil](https://sigil-ebook.com/).
