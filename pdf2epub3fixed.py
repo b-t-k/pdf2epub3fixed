@@ -513,7 +513,9 @@ def generate_fixed_layout_html_selectable(page, page_num, images_folder, image_c
                             font = span['font']
                             text = span['text']
                             color = span['color']
-                            
+                            #adjust top to compensate for alignment
+                            top = top-size
+                                                        
                             if int(color) != 0:
                                 hex_color = int_to_hex_color(int(color))
                                 text_color = f" color:{hex_color};"
