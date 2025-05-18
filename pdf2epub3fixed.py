@@ -515,7 +515,7 @@ def generate_fixed_layout_html_selectable(page, page_num, images_folder, image_c
                             color = span['color']
                             #adjust top to compensate for alignment
                             top = top-size
-                                                        
+
                             if int(color) != 0:
                                 hex_color = int_to_hex_color(int(color))
                                 text_color = f" color:{hex_color};"
@@ -542,7 +542,7 @@ def process_images(pdf_path, output_folder_html):
     
     image_path = os.path.join(output_folder_html,"OEBPS/image")
     
-    """Process images on the page and prepare the listing of images in the manifest. Only used in compelx HTML layout"""
+    """Process single background image on the page ."""
     
     doc = fitz.open(pdf_path)
 
