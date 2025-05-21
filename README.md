@@ -1,7 +1,7 @@
 # PDF2epub3fixed -> convert_fixed_epub.py
 
 ## Modified version: convert_fixed_epub.py
-This is a heavily edited version of PDF2epub3fixed that produces an fixed epub file that is made to have a single large background image and whole lines of text superimposed over it i.e. a children's picture book.
+This is a heavily edited version of PDF2epub3fixed that produces a fixed epub file that is made to have a single large background image and whole lines of text superimposed over it i.e. a children's picture book.
 
 ### The issue
 Adobe InDesign is horrible at adding extra crud to fixed epub exports and often puts spans between the individual letters of words for no apparent reason. This is horrible both for any editing and  accessibility purposes.

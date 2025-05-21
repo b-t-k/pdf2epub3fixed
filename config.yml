@@ -1,14 +1,14 @@
-pdf_path : "input_pdf_name.pdf"  # PDF file path
-output_folder : "output"
-epub_file_name : "out_putepub_name.epub" # Name of your epub file
-title : "TITLE"
-author : "AUTHOR_NAME"
-language : "en-US"
-publisher : "BOOK_PUBLSHER"
-date : "2025-04-15"
-description : "DESCRIPTION_TEXT_HERE"
-rights : "Copyright RIGHTS_HERE"
-font_folder : "font"
-css_folder : "css"
-cover_image : "1234567891234.jpg"
-urn : "1234567891234" #epub ISBN
+pdf_path : "/_working.pdf"  # PDF file path
+# output_folder : "output"
+epub_file_name : "working_converted.epub" # Name of your epub file
+# title : "A_SAMPLE_TITLE"
+# author : "AUTHOR_FULLNAME"
+# language : "en-US"
+# publisher : "XXX Book Publishers"
+# date : "2024-10-15"
+# description : "DESCRIPTION_TEXT_HERE"
+# rights : "Copyright RIGHTS_HERE"
+# font_folder : "font"
+# css_folder : "css"
+# cover_image : "9780000000000.jpg"
+# urn : "9780000000000" #epub ISBN
