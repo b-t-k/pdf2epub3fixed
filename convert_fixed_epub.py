@@ -60,7 +60,7 @@ language =  "en-US"
 publisher = "PUBLISHER_NAME"
 date = current_date
 description = "THIS_IS_THE_DESCRIPTION"
-rights =  "THIS_IS_THE_DESCRIPTION"
+rights =  "Copyright © INSERT_YEAR AUTHOR_NAME"
 isbn =  "9780000000000"
 
 # set file paths
@@ -72,15 +72,6 @@ css_folder = "css"
 
 def int_to_hex_color(value):
     return f"#{value:06X}"
-
-# def convert_allcaps(text):
-#   """
-#   Checks if the given text is in uppercase. Will ber rendered as <strong>
-#   """
-#   for char in text:
-#     if not char.isalpha() or not char.isupper() or char in ["."," ",",","!"]:
-#       return False
-#   return True
 
 def convert_allcaps(text):
     """
@@ -137,7 +128,7 @@ def write_content_opf(oebps_folder,content_opf_items,xhtml_files,page):
         media_type = "application/x-font-ttf"  # Default for .ttf
         font_path=os.path.basename(font["font_path"])
         if font_path.lower().endswith(".otf"):
-            media_type = "application/vnd.ms-opentype"  # Correct media type for .otf
+            media_type = "application/vnd.ms-opentype"  # Media type for .otf
         font_items += f'<item id="{font["font_name"]}" href="font/{font_path}" media-type="{media_type}"/>\n' 
 
     content_opf_content = f"""<?xml version="1.0" encoding="UTF-8"?>
