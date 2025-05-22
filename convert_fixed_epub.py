@@ -13,6 +13,7 @@ The first run will generate a list of fonts. Ensure those fonts are in a folder 
 from functions import get_input_file, extract_pdf_to_json
 from datetime import datetime
 import os
+import html
 import zipfile
 import shutil
 import pymupdf #  PDF processing
@@ -53,7 +54,6 @@ cover_image = get_input_file('jpeg')
 current_date = datetime.now().strftime('%Y-%m-%d')
 
 # set metadata defaults
-output_folder = "output"
 title =  "The_TITLE"
 author =  "AUTHOR_FIRST AUTHOR_LAST"
 language =  "en-US"
@@ -63,13 +63,16 @@ description = "THIS_IS_THE_DESCRIPTION"
 rights =  "Copyright © INSERT_YEAR AUTHOR_NAME"
 isbn =  "9780000000000"
 
-# set page 1 start recto (False) or verso (True)
+# Options
+#  set page_start_left for page 1 to start recto (False) or verso (True)
 page_start_left = False
+# set to True to export raw json
+export_json = False
 
 # set file paths
 epub_file_name =  os.path.splitext(pdf_path)[0]
-output_folder_html = os.path.join(output_folder,epub_file_name + "_html")
-epub_file_path = os.path.join(output_folder,epub_file_name + ".epub")
+output_folder_html = os.path.join(epub_file_name + "_html")
+epub_file_path = os.path.join(epub_file_name + ".epub")
 font_folder = current_folder + "/fonts"
 css_folder = "css"
 
@@ -195,9 +198,23 @@ def write_toc_xhtml(oebps_folder, doc):
     toc_xhtml_points = []
     # for chapnum, t in enumerate(toc) :
     for t in toc :
-        toc_xhtml_points.append(f"""
-        <li><a href="page_{t[2]}.xhtml">{titlecase(t[1])}</a></li>
-        """)
+        toc_xhtml_points.append(
+            f'<li><a href="page_{t[2]}.xhtml">{titlecase(t[1])}</a></li>\n'
+        )
+
+    # If pdf has existing Table of Contents ...
+    if toc_xhtml_points:
+        toc_ol = (
+            '<li><a href="cover.xhtml">Cover</a></li>\n' +
+            "".join(toc_xhtml_points)
+    )
+    else:
+        toc_ol = """
+        <li><a href="cover.xhtml">Cover</a></li>
+        <li><a href="page_1.xhtml">Digital Rights</a></li>
+        <li><a href="page_1.xhtml">Title Page</a></li>
+        <li><a href="page_1.xhtml">Copyright Page</a></li>
+        <li><a href="page_1.xhtml">Start</a></li>"""
 
     toc_xhtml_content = f"""<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" lang="{language}" xml:lang="{language}">
     <head>
@@ -207,12 +224,7 @@ def write_toc_xhtml(oebps_folder, doc):
         <nav id="toc" role="doc-toc" epub:type="toc">
             <h1>Contents</h1>
             <ol>
-                <li><a href="cover.xhtml">Cover</a></li>
-                <li><a href="page_1.xhtml">Digital Rights</a></li>
-                <li><a href="page_1.xhtml">Title Page</a></li>
-                <li><a href="page_1.xhtml">Copyright Page</a></li>
-                <li><a href="page_1.xhtml">Start</a></li>
-                {"".join(toc_xhtml_points)}
+                {toc_ol}
             </ol>
         </nav>
         <nav aria-labelledby="nav_landmarks" id="landmarks" epub:type="landmarks">
@@ -299,7 +311,7 @@ strong {{
         shutil.copyfile(font['font_path'], font_path_output)
 
 # Start process
-def create_epub_structure_from_pdf(pdf_path, output_folder, page_start_left, generate_json = False):    
+def create_epub_structure_from_pdf(pdf_path, output_folder, page_start_left, export_json):    
     #Create the folder structure and files needed for epub.
     os.makedirs(output_folder, exist_ok=True)
     
@@ -326,7 +338,7 @@ def create_epub_structure_from_pdf(pdf_path, output_folder, page_start_left, gen
     doc = pymupdf.open(pdf_path)
 
     # Optional generate json for development purposes
-    if generate_json : 
+    if export_json : 
         print("Extracting the PDF structure as raw JSON data for verification")
         extract_pdf_to_json(
             doc,
@@ -345,7 +357,6 @@ def create_epub_structure_from_pdf(pdf_path, output_folder, page_start_left, gen
         else:
             page_name =  "page_" + str(page_num)  # Start second page at 1 
             page_label = str(page_num)  # Start second page at 1 
-        # print(page_label)
 
         html_file_name = f"{page_name}.xhtml"
         html_file_path = os.path.join(oebps_folder, html_file_name)
@@ -357,6 +368,7 @@ def create_epub_structure_from_pdf(pdf_path, output_folder, page_start_left, gen
 
         with open(html_file_path, "w", encoding="utf-8") as f:
             f.write(page_html)
+
         # Add to manifest and toc
         content_opf_items.append(
             f'<item id="page_{page_num}" href="{html_file_name}" media-type="application/xhtml+xml"/>\n'
@@ -378,14 +390,14 @@ def create_epub_structure_from_pdf(pdf_path, output_folder, page_start_left, gen
             else:
                 spread = "page-spread-right" if is_odd_page else "page-spread-left"
 
-        print(page_id, " | ", page_start_left, " | ", is_odd_page, " | ", spread)
+        print(page_id, " | ", spread)
         xhtml_files.append(f'<itemref idref="{page_id}" properties="{spread}"/>\n')
 
-    print("     Done processing.")
+    print("...Done processing.")
 
     # Add a cover image  
     if os.path.exists(cover_image) :
-        print("Processing cover image")
+        print("\nProcessing cover image")
         cover_image_name = os.path.basename(cover_image)
         shutil.copy2(cover_image, images_folder)
         
@@ -403,7 +415,8 @@ def create_epub_structure_from_pdf(pdf_path, output_folder, page_start_left, gen
     write_css_and_font_files(oebps_folder,font_folder_output,page)
     print(f"\nEPUB structure created at: {output_folder}")
 
-def generate_html(page, page_num, page_name, image_counter):  # Added language parameter
+def generate_html(page, page_num, page_name, image_counter):  
+    # Added language parameter
     """Generates fixed-layout HTML for a single PDF page with one background image. Renders complete sentences without spans or divs except for italics etc.
     """
     page_width = page.rect.width
@@ -460,9 +473,8 @@ def generate_html(page, page_num, page_name, image_counter):  # Added language p
                             left = span['origin'][0]
                             top = span['origin'][1]
                             size = span['size']
-                            font = span['font']
                             # check for special characters i.e. &
-                            text = span['text'].replace("&", "&amp;")
+                            text = html.escape(span['text'])
                             color = span['color']
                             # adjust top to compensate for alignment
                             top = top - size
@@ -475,9 +487,9 @@ def generate_html(page, page_num, page_name, image_counter):  # Added language p
                                 
                             # if text is all caps convert to <strong> and title case
                             if convert_allcaps(text):
-                                html_content += f'<div style="left:{left:.2f}px; top:{top:.2f}px; font-size:{size:.2f}px; font-family:\'{font}\'; {text_color}"><p><span class="upper">{titlecase(text)}</span></p></div>\n'
+                                html_content += f'<div style="left:{left:.2f}px; top:{top:.2f}px; font-size:{size:.2f}px; font-family:\'{font_name}\'; {text_color}"><p><span class="upper">{titlecase(text)}</span></p></div>\n'
                             else:
-                                html_content += f'<div style="left:{left:.2f}px; top:{top:.2f}px; font-size:{size:.2f}px; font-family:\'{font}\';{text_color}"><p>{text}</p></div>\n'
+                                html_content += f'<div style="left:{left:.2f}px; top:{top:.2f}px; font-size:{size:.2f}px; font-family:\'{font_name}\';{text_color}"><p>{text}</p></div>\n'
 
     html_content += "</body></html>"
 
@@ -538,7 +550,7 @@ fonts_in_pdf = []
 
 # Create epub
 print("Creating fixed epub")
-create_epub_structure_from_pdf(pdf_path, output_folder_html,page_start_left)
-    # Add False if you want to see the json,
+create_epub_structure_from_pdf(pdf_path, output_folder_html,page_start_left, export_json)
+    # Add ", False" after page_start_left if you want to see the json
 process_images(pdf_path,output_folder_html)
 zip_folder_to_epub(output_folder_html, epub_file_path)
