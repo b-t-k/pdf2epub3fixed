@@ -25,6 +25,7 @@ The new script accomplishes several additional things:
 - detects and preserves font colors
 - removes deprecated ncx file
 - renames the first page to cover.xhtml and starts the rest at page_1
+    - uses external cover file for first page image
 - changes urn to isbn number
 - converts backgrounds (images) to rgb and puts them in a image folder
 - adjust opf spine rendition metadata and adds page spreads to spine. It makes the assumption there will be a cover so the first and second file will always be `page-spread-right`

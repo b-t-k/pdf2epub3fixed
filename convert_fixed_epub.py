@@ -63,6 +63,9 @@ description = "THIS_IS_THE_DESCRIPTION"
 rights =  "Copyright © INSERT_YEAR AUTHOR_NAME"
 isbn =  "9780000000000"
 
+# set page 1 start recto (False) or verso (True)
+page_start_left = False
+
 # set file paths
 epub_file_name =  os.path.splitext(pdf_path)[0]
 output_folder_html = os.path.join(output_folder,epub_file_name + "_html")
@@ -296,7 +299,7 @@ strong {{
         shutil.copyfile(font['font_path'], font_path_output)
 
 # Start process
-def create_epub_structure_from_pdf(pdf_path, output_folder, generate_json = True):    
+def create_epub_structure_from_pdf(pdf_path, output_folder, page_start_left, generate_json = False):    
     #Create the folder structure and files needed for epub.
     os.makedirs(output_folder, exist_ok=True)
     
@@ -362,11 +365,20 @@ def create_epub_structure_from_pdf(pdf_path, output_folder, generate_json = True
             content_opf_items.append(
                 f'<item id="page_{img["id"]}" href="{img["href"]}" media-type="image/jpeg"/>\n'
             )
+
         page_id = f"page_{page_num}"
-        if page_num != "i":
-            spread = "page-spread-right" if (page_num % 2 == 0) else "page-spread-left"
-        else:
-            spread = "page-spread-left"
+        is_odd_page = (page_num % 2 != 0)
+
+        if page_num == 0: # if cover start as right page
+            spread = "page-spread-right" 
+
+        else: 
+            if page_start_left:
+                spread = "page-spread-left" if is_odd_page else "page-spread-right"
+            else:
+                spread = "page-spread-right" if is_odd_page else "page-spread-left"
+
+        print(page_id, " | ", page_start_left, " | ", is_odd_page, " | ", spread)
         xhtml_files.append(f'<itemref idref="{page_id}" properties="{spread}"/>\n')
 
     print("     Done processing.")
@@ -526,7 +538,7 @@ fonts_in_pdf = []
 
 # Create epub
 print("Creating fixed epub")
-create_epub_structure_from_pdf(pdf_path, output_folder_html,True)
-    # change False to True if you want to see the json
+create_epub_structure_from_pdf(pdf_path, output_folder_html,page_start_left)
+    # Add False if you want to see the json,
 process_images(pdf_path,output_folder_html)
 zip_folder_to_epub(output_folder_html, epub_file_path)
