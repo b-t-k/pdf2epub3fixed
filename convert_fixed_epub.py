@@ -52,37 +52,23 @@ cover_image = get_input_file('jpeg')
 #set date
 current_date = datetime.now().strftime('%Y-%m-%d')
 
-# Set default values
-defaults = {
-    'output_folder' : "output",
-    'title': "The_TITLE",
-    'author': "AUTHOR_FIRST AUTHOR_LAST",
-    'language': "en-US",
-    'publisher': "PUBLISHER_NAME",
-    'date': current_date,
-    'description': "THIS_IS_THE_DESCRIPTION",
-    'rights': "Copyright © INSERT_YEAR AUTHOR_NAME",
-    'font_folder': current_folder + "/fonts",
-    'css_folder': "css",
-    'cover_image': "",
-    'isbn': "9780000000000"
-}
+# set metadata defaults
+output_folder = "output"
+title =  "The_TITLE"
+author =  "AUTHOR_FIRST AUTHOR_LAST"
+language =  "en-US"
+publisher = "PUBLISHER_NAME"
+date = current_date
+description = "THIS_IS_THE_DESCRIPTION"
+rights =  "THIS_IS_THE_DESCRIPTION"
+isbn =  "9780000000000"
 
-output_folder = defaults['output_folder']
-title =  defaults['title']
+# set file paths
 epub_file_name =  os.path.splitext(pdf_path)[0]
-author =  defaults['author']
-language =  defaults['language']
-publisher = defaults['publisher']
-date = defaults['date']
-description = defaults['description']
-rights =  defaults['rights']
-font_folder = defaults['font_folder']
-css_folder = defaults['css_folder']
-isbn =  defaults['isbn']
-
 output_folder_html = os.path.join(output_folder,epub_file_name + "_html")
 epub_file_path = os.path.join(output_folder,epub_file_name + ".epub")
+font_folder = current_folder + "/fonts"
+css_folder = "css"
 
 def int_to_hex_color(value):
     return f"#{value:06X}"
@@ -446,12 +432,16 @@ def generate_html(page, page_num, page_name, image_counter):  # Added language p
     if images:  # Check if there are any images
         image_filename = f"{page_name}.jpg"  
 
+        if page_title == "Cover": # use external cover image
+            image_filename = os.path.basename(cover_image)
+
         html_content += f'<img alt="ALT_TEXT_HERE" src="image/{image_filename}" style="position:absolute; left:0px; top:0px; width:{page_width}px; height:{page_height}px; z-index: -1;" />\n'
 
-        image_manifest = [{  # Only create manifest entry if image exists
-            'id': f"image_{image_counter}",
-            'href': f"image/{image_filename}"
-        }]
+        if page_title != "Cover":
+            image_manifest = [{
+                'id': f"image_{image_counter}",
+                'href': f"image/{image_filename}"
+            }]
         image_counter += 1
 
     text_instances = page.get_text("dict")
@@ -491,10 +481,9 @@ def generate_html(page, page_num, page_name, image_counter):  # Added language p
     return html_content, image_counter, image_manifest
 
 def process_images(pdf_path, output_folder_html):
-    
+    # Process single background image on the page
     image_path = os.path.join(output_folder_html,"OEBPS/image")
-    
-    """Process single background image on the page ."""    
+       
     doc = pymupdf.open(pdf_path)
 
     for page_index in range(len(doc)):
@@ -514,11 +503,10 @@ def process_images(pdf_path, output_folder_html):
                 image = image.convert("RGB") # Ensure PIL also treats it as RGB
                 
                 if page_index == 0:
-                    page_label ="cover"  # First page as Roman numeral (cover)
+                    page_label ="cover"  # First page is cover — don't create image as we will use the external file
                 else:
                     page_label =  "page_" + str(page_index)  # Start second page at 1 
-
-                image.save(f"{image_path}/{page_label}.jpg", "JPEG")
+                    image.save(f"{image_path}/{page_label}.jpg", "JPEG")
 
                 # Clean up the Pixmap object
                 pix = None
@@ -526,8 +514,7 @@ def process_images(pdf_path, output_folder_html):
     doc.close()
 
 def zip_folder_to_epub(folder_path, epub_path):
-
-    """Zips the folder structure and creates an EPUB file."""
+    # Zips the folder structure and creates an EPUB file.
 
     with zipfile.ZipFile(epub_path, 'w', zipfile.ZIP_STORED) as epubFile:
         epubFile.writestr('mimetype', 'application/epub+zip')
