@@ -6,3 +6,7 @@
 *.pdf
 *.jpg
 /output
+/__pycache__
+config.yml
+Original_README.md
+pdf2epub3fixed.py
