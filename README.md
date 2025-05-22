@@ -9,7 +9,7 @@ Adobe InDesign is horrible at adding extra crud to fixed epub exports and often 
 Using this script you can take a pdf export from InDesign and produce a much cleaner and more accessible fixed epub.
 
 ### Change Summary
-I have removed the whole yaml config in favour of hardcoded defaults.
+I have removed the whole yaml config in favour of hardcoded defaults since I have an api that produces all the metadata from BooksoniX.
 
 The new script accomplishes several additional things:
 - adds basic accessibility features:
@@ -40,15 +40,14 @@ The new script accomplishes several additional things:
 ## Installation
 The python script requires the following dependencies.
 
-### Install dependencies
 - pymupdf
 - pillow
 - titlecase
 
-`pip2 install pymupdf pillow titlecase`
+`pip3 install pymupdf pillow titlecase`
 
 ## Usage
-This script is intended to take an InDesign generated pdf and make a functional fixed epub that is as accessible as possible. It's main purpose it for converting things like kids' picture books, but I have had some success using it on more complex illustrated non-fiction books.
+This script is intended to take an InDesign generated pdf and make a functional fixed epub that is as accessible as possible. Its main purpose was designed to be for converting things like kids' picture books, but I have had some success using it on more complex illustrated non-fiction books.
 
 It assumes that the images in InDesign have been converted into a single background image.
 
@@ -56,29 +55,34 @@ It also assumes that the first page is the cover.
 
 The first run will generate a list of fonts. Ensure those fonts are in a folder named "fonts" in the same directory as the pdf. Then run it again.
 
-### In InDesign
-1. move all type to a new layer and hide layer
-2. export all pages to jpeg
-3. Add jpegs back in to new layer
+### Step by Step
+#### In InDesign
+1. Move all type to a new layer and hide layer
+2. Export all pages to jpeg
+3. Add jpegs back in to new layer and reshow type layer
 4. Check *Allow Document Pages to Shuffle*. Add in a recto page at the beginning and place the cover jpeg file there (or any placeholder image as it will be replaced).
 4. Generate ToC and pour onto pasteboard
 5. Export to print pdf (with bookmarks checked)
 
-### Script
-1. put cover image in folder with pdf
-2. run script
-3. Note list of fonts, collect them, rename if necssary and put in fonts folder.
-4. Runs script again
+#### Use Script
+1. Put cover image in folder with pdf
+2. Run script
+3. Note list of fonts, collect them, rename if necessary and put in *fonts* folder.
+4. If page 1 (after the cover) is not a title page (recto), change the `page_start_left` to `True`
+4. Run script again
 
-### Post script
+#### Post script
 1. Open in Sigil
 2. Run the handy PageList plugin to generate the page list in nav.xhtml
 3. Edit nav.xhtml and edit Landmarks and Contents if necessary
 4. Add in alt text (see **Note**)
 5. Edit content.opf to update title, author etc. metadata and accessibility metadata
 6. Thoroughly proof type to see if italics etc. are causing any issues
-7. Run epubchecker
+7. Run epubcheck 
+    - terminal version: https://www.w3.org/publishing/epubcheck/
+    - GUI version: https://pagina.gmbh/startseite/leistungen/publishing-softwareloesungen/epub-checker/
 
-**Note** I have handy export alttext and import alttext scripts that exports the alt text to an excel spreadsheet for easy editing. They aren't perfect but work pretty good. At this point they aren't really stand alone but I am working on that...
-https://github.com/b-t-k/epub-python-scripts/blob/main/Run_alttext_update.py
+
+**Note:** I have handy export alttext and import alttext scripts that exports the alt text to an excel spreadsheet for easy editing. They aren't perfect but work pretty good. At this point they aren't really stand alone but I am working on that...  
+https://github.com/b-t-k/epub-python-scripts/blob/main/Run_alttext_update.py  
 https://github.com/b-t-k/epub-python-scripts/blob/main/Run_alttext_extract_with_caption.py
